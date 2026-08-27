@@ -38,4 +38,11 @@ object GameSession {
         selectedItems.clear()
         collectedItems.clear()
     }
+
+    /** 싱글턴이라 테스트마다 초기 상태로 되돌리기 위한 용도. 앱 코드에서는 쓰지 않는다. */
+    fun resetForTest() {
+        roundNumber.value = 1
+        selectedItems.clear()
+        collectedItems.clear()
+    }
 }

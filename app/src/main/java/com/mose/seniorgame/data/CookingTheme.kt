@@ -6,21 +6,27 @@ package com.mose.seniorgame.data
  * 주의력 과제(미끼 사이에서 목표만 고르기)를 구성할 수 있다.
  */
 object CookingTheme {
-    val pairs: List<Pair<String, String>> = listOf(
-        "두부" to "순두부",
-        "계란" to "메추리알",
-        "대파" to "쪽파",
-        "마늘" to "양파",
-        "라면" to "국수",
-        "식용유" to "참기름",
-        "설탕" to "소금",
-        "우유" to "두유",
-        "김" to "미역",
-        "고추장" to "된장",
+    /** 품목명 to (미끼, 가격원). 가격은 계산대(이중과제) 단계용 임시 시세. */
+    val pairs: List<Triple<String, String, Int>> = listOf(
+        Triple("두부", "순두부", 1500),
+        Triple("계란", "메추리알", 4000),
+        Triple("대파", "쪽파", 2000),
+        Triple("마늘", "양파", 2500),
+        Triple("라면", "국수", 4500),
+        Triple("식용유", "참기름", 6000),
+        Triple("설탕", "소금", 2000),
+        Triple("우유", "두유", 2800),
+        Triple("김", "미역", 3000),
+        Triple("고추장", "된장", 5000),
     )
 
     /** 계획 세우기 화면에 제시할 후보. MVP는 앞쪽 [count]개를 고정으로 쓴다. */
-    fun candidates(count: Int = 4): List<Pair<String, String>> = pairs.take(count)
+    fun candidates(count: Int = 4): List<Pair<String, String>> =
+        pairs.take(count).map { (target, decoy, _) -> target to decoy }
 
     fun decoyOf(target: String): String? = pairs.firstOrNull { it.first == target }?.second
+
+    fun priceOf(target: String): Int = pairs.firstOrNull { it.first == target }?.third ?: 0
+
+    fun totalPrice(items: List<String>): Int = items.sumOf { priceOf(it) }
 }
