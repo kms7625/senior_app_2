@@ -25,7 +25,7 @@ import com.mose.seniorgame.state.GameSession
 @Composable
 fun PlanScreen(onConfirm: () -> Unit) {
     val theme = GameSession.currentTheme.value
-    val candidates = theme.candidates()
+    val candidates = theme.items.take(4)
 
     Column(
         modifier = Modifier
@@ -34,20 +34,22 @@ fun PlanScreen(onConfirm: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("${theme.label} · 무엇이 필요한지 골라주세요", style = MaterialTheme.typography.titleLarge)
-        candidates.forEach { (target, _) ->
+        candidates.forEach { item ->
             // Row 전체를 탭 영역으로 — 체크박스만 노려 눌러야 하는 부담을 줄인다
             // (48dp 최소 터치 타겟 원칙, senior-game-dev 접근성 기준).
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { GameSession.toggleSelected(target) },
+                    .clickable { GameSession.toggleSelected(item.name) },
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Checkbox(
-                    checked = GameSession.selectedItems.contains(target),
+                    checked = GameSession.selectedItems.contains(item.name),
                     onCheckedChange = null,
                 )
-                Text(target, style = MaterialTheme.typography.bodyLarge)
+                ItemIcon(iconSlug = item.iconSlug)
+                Text(item.name, style = MaterialTheme.typography.bodyLarge)
             }
         }
         SeniorPrimaryButton(

@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mose.seniorgame.state.GameSession
@@ -69,9 +70,11 @@ fun SearchScreen(onDone: () -> Unit) {
                     isCollected -> "$name ✓"
                     else -> name
                 }
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyLarge,
+                // 미끼는 아직 전용 ShoppingItem이 없어 iconSlug가 없다 — 자리표시 그림으로
+                // 대체(ItemIcon이 못 찾는 slug는 자동으로 플레이스홀더를 보여준다).
+                val iconSlug = theme.itemOf(name)?.iconSlug ?: "decoy_placeholder"
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .padding(8.dp)
                         .clickable {
@@ -83,7 +86,10 @@ fun SearchScreen(onDone: () -> Unit) {
                                 GameSession.registerWrongTap()
                             }
                         },
-                )
+                ) {
+                    ItemIcon(iconSlug = iconSlug)
+                    Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
         if (allCollected) {
