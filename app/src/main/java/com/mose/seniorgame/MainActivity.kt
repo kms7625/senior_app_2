@@ -18,6 +18,7 @@ import com.mose.seniorgame.ui.screens.RouteScreen
 import com.mose.seniorgame.ui.screens.SearchScreen
 import com.mose.seniorgame.ui.screens.SettingsScreen
 import com.mose.seniorgame.ui.theme.SeniorAppTheme
+import com.mose.seniorgame.state.GameSession
 
 // 화면 순서는 docs/GDD.md "사용자 진행 흐름"과 동일:
 // 홈 → 계획 세우기 → 동선 계획 → 매장 탐색 → (선택) 계산대 → 결과 → 홈
@@ -72,6 +73,7 @@ private fun AppNavHost() {
         composable(Routes.RESULT) {
             ResultScreen(
                 onHome = {
+                    GameSession.advanceRound()
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
