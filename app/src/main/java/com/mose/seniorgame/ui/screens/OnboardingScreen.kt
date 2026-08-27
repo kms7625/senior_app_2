@@ -21,8 +21,8 @@ import com.mose.seniorgame.data.ThemePool
  * "심부름" 같은 수동적 표현은 쓰지 않는다("우리 집에 놀러와" 서사의 주체성 원칙,
  * docs/GDD.md 참고).
  *
- * ⚠️ 지금은 앱을 껐다 켜면 다시 뜬다(영구 저장소가 아직 없음) — MVP 단계의 알려진
- * 제한사항이다. 설정 화면에서 "선호 테마"를 탭하면 언제든 다시 바꿀 수 있다.
+ * [GameSession.initializePersistence]가 DataStore로 저장하므로 앱을 껐다 켜도 다시
+ * 뜨지 않는다. 설정 화면에서 "선호 테마"를 탭하면 언제든 다시 바꿀 수 있다.
  */
 @Composable
 fun OnboardingScreen(onThemeChosen: (ShoppingTheme) -> Unit) {

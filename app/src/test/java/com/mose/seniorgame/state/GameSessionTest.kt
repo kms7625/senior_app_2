@@ -83,4 +83,35 @@ class GameSessionTest {
 
         assertTrue(GameSession.hasOnboarded.value)
     }
+
+    @Test
+    fun `settings toggles default on-on-off and flip via their setters`() {
+        assertTrue(GameSession.autoDifficultyEnabled.value)
+        assertTrue(GameSession.dualTaskEnabled.value)
+        assertFalse(GameSession.alwaysShowListEnabled.value)
+
+        GameSession.setAutoDifficulty(false)
+        GameSession.setDualTask(false)
+        GameSession.setAlwaysShowList(true)
+
+        assertFalse(GameSession.autoDifficultyEnabled.value)
+        assertFalse(GameSession.dualTaskEnabled.value)
+        assertTrue(GameSession.alwaysShowListEnabled.value)
+    }
+
+    @Test
+    fun `showListHint stays true when autoDifficulty is off, even after recording performance`() {
+        GameSession.setAutoDifficulty(false)
+
+        GameSession.recordRoundPerformance(targetCount = 4, elapsedSeconds = 1f)
+
+        assertTrue(GameSession.showListHint)
+    }
+
+    @Test
+    fun `showListHint stays true when alwaysShowList is on`() {
+        GameSession.setAlwaysShowList(true)
+
+        assertTrue(GameSession.showListHint)
+    }
 }

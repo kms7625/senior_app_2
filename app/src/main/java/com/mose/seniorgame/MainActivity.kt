@@ -81,7 +81,13 @@ private fun AppNavHost() {
             RouteScreen(onConfirm = { navController.navigate(Routes.SEARCH) })
         }
         composable(Routes.SEARCH) {
-            SearchScreen(onDone = { navController.navigate(Routes.CHECKOUT) })
+            SearchScreen(
+                onDone = {
+                    // "이중과제 사용" 토글이 꺼져 있으면 계산대를 건너뛰고 바로 결과로.
+                    val next = if (GameSession.dualTaskEnabled.value) Routes.CHECKOUT else Routes.RESULT
+                    navController.navigate(next)
+                },
+            )
         }
         composable(Routes.CHECKOUT) {
             CheckoutScreen(

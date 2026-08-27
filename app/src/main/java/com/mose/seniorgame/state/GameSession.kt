@@ -42,6 +42,9 @@ object GameSession {
     private val collectedItemsKey = stringSetPreferencesKey("collected_items")
     private val wrongTapsKey = intPreferencesKey("wrong_taps_this_round")
     private val hideHintKey = booleanPreferencesKey("hide_hint_next_round")
+    private val autoDifficultyKey = booleanPreferencesKey("auto_difficulty_enabled")
+    private val dualTaskKey = booleanPreferencesKey("dual_task_enabled")
+    private val alwaysShowListKey = booleanPreferencesKey("always_show_list_enabled")
 
     private var dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>? = null
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -67,8 +70,22 @@ object GameSession {
 
     private var hideHintNextRound = mutableStateOf(false)
 
+    /** 설정 화면 토글 — 실제로 게임 동작을 바꾼다(코드 리뷰에서 죽은 UI로 지적된 부분,
+     * 2026-08-27 연결). */
+    var autoDifficultyEnabled = mutableStateOf(true)
+        private set
+    var dualTaskEnabled = mutableStateOf(true)
+        private set
+    var alwaysShowListEnabled = mutableStateOf(false)
+        private set
+
+    /**
+     * 힌트 노출 여부. [alwaysShowListEnabled]가 켜져 있거나 [autoDifficultyEnabled]가
+     * 꺼져 있으면(=난이도를 안 올리기로 했으면) 항상 힌트를 보여준다. 둘 다 기본값이면
+     * 온디바이스 AI가 예측한 [hideHintNextRound]를 따른다.
+     */
     val showListHint: Boolean
-        get() = !hideHintNextRound.value
+        get() = alwaysShowListEnabled.value || !autoDifficultyEnabled.value || !hideHintNextRound.value
 
     /**
      * 저장된 상태를 전부 동기적으로 읽어온다. MainActivity.onCreate에서
@@ -90,6 +107,9 @@ object GameSession {
         collectedItems.addAll(prefs[collectedItemsKey] ?: emptySet())
         wrongTapsThisRound.value = prefs[wrongTapsKey] ?: 0
         hideHintNextRound.value = prefs[hideHintKey] ?: false
+        autoDifficultyEnabled.value = prefs[autoDifficultyKey] ?: true
+        dualTaskEnabled.value = prefs[dualTaskKey] ?: true
+        alwaysShowListEnabled.value = prefs[alwaysShowListKey] ?: false
     }
 
     /** 상태가 바뀔 때마다 호출 — 다음 실행에서도 이어할 수 있도록 전체를 다시 쓴다. */
@@ -102,6 +122,9 @@ object GameSession {
         val collected = collectedItems.toSet()
         val wrongTaps = wrongTapsThisRound.value
         val hideHint = hideHintNextRound.value
+        val autoDifficulty = autoDifficultyEnabled.value
+        val dualTask = dualTaskEnabled.value
+        val alwaysShowList = alwaysShowListEnabled.value
         ioScope.launch {
             store.edit { prefs ->
                 prefs[hasOnboardedKey] = onboarded
@@ -111,8 +134,26 @@ object GameSession {
                 prefs[collectedItemsKey] = collected
                 prefs[wrongTapsKey] = wrongTaps
                 prefs[hideHintKey] = hideHint
+                prefs[autoDifficultyKey] = autoDifficulty
+                prefs[dualTaskKey] = dualTask
+                prefs[alwaysShowListKey] = alwaysShowList
             }
         }
+    }
+
+    fun setAutoDifficulty(enabled: Boolean) {
+        autoDifficultyEnabled.value = enabled
+        persist()
+    }
+
+    fun setDualTask(enabled: Boolean) {
+        dualTaskEnabled.value = enabled
+        persist()
+    }
+
+    fun setAlwaysShowList(enabled: Boolean) {
+        alwaysShowListEnabled.value = enabled
+        persist()
     }
 
     fun selectTheme(theme: ShoppingTheme) {
@@ -148,6 +189,11 @@ object GameSession {
      */
     fun recordRoundPerformance(targetCount: Int, elapsedSeconds: Float) {
         if (targetCount <= 0) return
+        if (!autoDifficultyEnabled.value) {
+            // 난이도 자동 조절이 꺼져 있으면 모델을 아예 호출하지 않는다 — showListHint가
+            // 이미 항상 true를 돌려주므로 결과에 영향은 없지만 불필요한 추론을 skip한다.
+            return
+        }
         val accuracy = targetCount.toFloat() / (targetCount + wrongTapsThisRound.value)
         val avgReactionTime = elapsedSeconds / targetCount
         hideHintNextRound.value = DifficultyModel.predictHideHint(
@@ -176,5 +222,8 @@ object GameSession {
         collectedItems.clear()
         wrongTapsThisRound.value = 0
         hideHintNextRound.value = false
+        autoDifficultyEnabled.value = true
+        dualTaskEnabled.value = true
+        alwaysShowListEnabled.value = false
     }
 }

@@ -11,23 +11,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mose.seniorgame.data.ThemePool
 import com.mose.seniorgame.state.GameSession
 
-/** 와이어프레임 07: 설정 — 토글 사이 넉넉한 간격(탭 타겟 간 최소 32px 기준). */
+/**
+ * 와이어프레임 07: 설정 — 토글 사이 넉넉한 간격(탭 타겟 간 최소 32px 기준).
+ * 토글은 [GameSession]에 직접 연결돼 실제로 게임 동작을 바꾼다(코드 리뷰에서
+ * 로컬 remember 상태뿐인 죽은 UI로 지적된 부분, 2026-08-27 연결).
+ */
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
-    var autoDifficulty by remember { mutableStateOf(true) }
-    var dualTask by remember { mutableStateOf(true) }
-    var alwaysShowList by remember { mutableStateOf(true) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,9 +31,9 @@ fun SettingsScreen(onBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         ThemeRow()
-        SettingRow("난이도 자동 조절 (AI)", autoDifficulty) { autoDifficulty = it }
-        SettingRow("이중과제(계산 단계) 사용", dualTask) { dualTask = it }
-        SettingRow("목록 다시 보기 항상 허용", alwaysShowList) { alwaysShowList = it }
+        SettingRow("난이도 자동 조절 (AI)", GameSession.autoDifficultyEnabled.value, GameSession::setAutoDifficulty)
+        SettingRow("이중과제(계산 단계) 사용", GameSession.dualTaskEnabled.value, GameSession::setDualTask)
+        SettingRow("목록 다시 보기 항상 허용", GameSession.alwaysShowListEnabled.value, GameSession::setAlwaysShowList)
         SeniorSecondaryButton(text = "뒤로가기", onClick = onBack)
     }
 }
