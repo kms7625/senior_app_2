@@ -23,6 +23,13 @@ object GameSession {
     var currentTheme = mutableStateOf(ThemePool.cooking)
         private set
 
+    /**
+     * 첫 실행 온보딩(테마 선택)을 마쳤는지. 영구 저장소가 아직 없어 앱을 껐다 켜면
+     * 다시 false로 시작한다 — MVP 단계의 알려진 제한사항([OnboardingScreen] 참고).
+     */
+    var hasOnboarded = mutableStateOf(false)
+        private set
+
     val selectedItems = mutableStateListOf<String>()
 
     val collectedItems = mutableStateListOf<String>()
@@ -40,6 +47,10 @@ object GameSession {
         currentTheme.value = theme
         selectedItems.clear()
         collectedItems.clear()
+    }
+
+    fun completeOnboarding() {
+        hasOnboarded.value = true
     }
 
     fun toggleSelected(item: String) {
@@ -81,6 +92,7 @@ object GameSession {
     fun resetForTest() {
         roundNumber.value = 1
         currentTheme.value = ThemePool.cooking
+        hasOnboarded.value = false
         selectedItems.clear()
         collectedItems.clear()
         wrongTapsThisRound.value = 0

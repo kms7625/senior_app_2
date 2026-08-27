@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mose.seniorgame.ui.screens.CheckoutScreen
 import com.mose.seniorgame.ui.screens.HomeScreen
+import com.mose.seniorgame.ui.screens.OnboardingScreen
 import com.mose.seniorgame.ui.screens.PlanScreen
 import com.mose.seniorgame.ui.screens.ResultScreen
 import com.mose.seniorgame.ui.screens.RouteScreen
@@ -24,6 +25,7 @@ import com.mose.seniorgame.ai.DifficultyModel
 // 화면 순서는 docs/GDD.md "사용자 진행 흐름"과 동일:
 // 홈 → 계획 세우기 → 동선 계획 → 매장 탐색 → (선택) 계산대 → 결과 → 홈
 object Routes {
+    const val ONBOARDING = "onboarding"
     const val HOME = "home"
     const val PLAN = "plan"
     const val ROUTE = "route"
@@ -51,7 +53,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AppNavHost() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Routes.HOME) {
+    val startDestination = if (GameSession.hasOnboarded.value) Routes.HOME else Routes.ONBOARDING
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(Routes.ONBOARDING) {
+            OnboardingScreen(
+                onThemeChosen = { theme ->
+                    GameSession.selectTheme(theme)
+                    GameSession.completeOnboarding()
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.ONBOARDING) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(Routes.HOME) {
             HomeScreen(
                 onStart = { navController.navigate(Routes.PLAN) },

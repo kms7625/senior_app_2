@@ -1,9 +1,11 @@
 package com.mose.seniorgame.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -33,10 +35,17 @@ fun PlanScreen(onConfirm: () -> Unit) {
     ) {
         Text("${theme.label} · 무엇이 필요한지 골라주세요", style = MaterialTheme.typography.titleLarge)
         candidates.forEach { (target, _) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Row 전체를 탭 영역으로 — 체크박스만 노려 눌러야 하는 부담을 줄인다
+            // (48dp 최소 터치 타겟 원칙, senior-game-dev 접근성 기준).
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { GameSession.toggleSelected(target) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Checkbox(
                     checked = GameSession.selectedItems.contains(target),
-                    onCheckedChange = { GameSession.toggleSelected(target) },
+                    onCheckedChange = null,
                 )
                 Text(target, style = MaterialTheme.typography.bodyLarge)
             }

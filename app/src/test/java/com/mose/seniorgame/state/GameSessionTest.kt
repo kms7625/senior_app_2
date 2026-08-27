@@ -74,4 +74,13 @@ class GameSessionTest {
         assertEquals(ThemePool.tools, GameSession.currentTheme.value)
         assertTrue(GameSession.selectedItems.isEmpty())
     }
+
+    @Test
+    fun `hasOnboarded defaults to false and flips true after completeOnboarding`() {
+        assertFalse(GameSession.hasOnboarded.value)
+
+        GameSession.completeOnboarding()
+
+        assertTrue(GameSession.hasOnboarded.value)
+    }
 }
