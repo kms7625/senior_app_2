@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mose.seniorgame.ai.DifficultyModel
 import com.mose.seniorgame.data.ShoppingTheme
@@ -20,10 +22,12 @@ import kotlinx.coroutines.runBlocking
 private val Context.gameDataStore by preferencesDataStore(name = "game_session")
 
 /**
- * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴).
- * 온보딩 여부·선호 테마만 DataStore로 영구 저장하고([initializePersistence]),
- * 라운드 진행 상태(선택/수집 품목, 라운드 수)는 아직 프로세스 종료 시 사라진다 —
- * 다음 확장 대상(docs/GDD.md TODO 참고).
+ * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴, DataStore로 영구
+ * 저장). 온보딩 여부·선호 테마뿐 아니라 라운드 진행 상태(선택/수집 품목, 라운드
+ * 수, 오답 수, 다음 라운드 난이도)까지 전부 저장해서 프로세스가 죽어도 하던 라운드
+ * 그대로 이어할 수 있다([initializePersistence] 참고). 저장은 상태가 바뀔 때마다
+ * [persist]를 호출하는 방식(값이 몇 개 안 돼 매번 전체를 다시 쓴다 — 항목이 크게
+ * 늘어나면 부분 갱신으로 바꾸는 걸 재검토).
  *
  * [showListHint]는 온디바이스 AI(TFLite, [DifficultyModel])가 직전 라운드 정답률·
  * 반응시간·라운드 수를 보고 추론한 결과를 따른다(docs/GDD.md "③ 찾기(간격회상)" 참고).
@@ -33,6 +37,12 @@ private val Context.gameDataStore by preferencesDataStore(name = "game_session")
 object GameSession {
     private val hasOnboardedKey = booleanPreferencesKey("has_onboarded")
     private val themeIdKey = stringPreferencesKey("theme_id")
+    private val roundNumberKey = intPreferencesKey("round_number")
+    private val selectedItemsKey = stringSetPreferencesKey("selected_items")
+    private val collectedItemsKey = stringSetPreferencesKey("collected_items")
+    private val wrongTapsKey = intPreferencesKey("wrong_taps_this_round")
+    private val hideHintKey = booleanPreferencesKey("hide_hint_next_round")
+
     private var dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>? = null
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -61,10 +71,11 @@ object GameSession {
         get() = !hideHintNextRound.value
 
     /**
-     * 저장된 온보딩 여부·선호 테마를 동기적으로 읽어온다. MainActivity.onCreate에서
-     * setContent보다 먼저 호출해야 첫 렌더링부터 정확한 시작 화면(홈 vs 온보딩)을
-     * 고를 수 있다. 저장 데이터가 작아(두 값뿐) runBlocking으로도 체감 지연이 거의
-     * 없다고 판단해 별도 스플래시 화면 없이 동기 처리했다 — 항목이 늘어나면 재검토.
+     * 저장된 상태를 전부 동기적으로 읽어온다. MainActivity.onCreate에서
+     * setContent보다 먼저 호출해야 첫 렌더링부터 정확한 시작 화면(홈 vs 온보딩)과
+     * 하던 라운드 상태를 바로 복원할 수 있다. 저장 데이터가 작아 runBlocking으로도
+     * 체감 지연이 거의 없다고 판단해 별도 스플래시 화면 없이 동기 처리했다 —
+     * 항목이 크게 늘어나면 재검토.
      */
     fun initializePersistence(context: Context) {
         val store = context.applicationContext.gameDataStore
@@ -72,16 +83,34 @@ object GameSession {
         val prefs = runBlocking { store.data.first() }
         hasOnboarded.value = prefs[hasOnboardedKey] ?: false
         prefs[themeIdKey]?.let { currentTheme.value = ThemePool.byId(it) }
+        roundNumber.value = prefs[roundNumberKey] ?: 1
+        selectedItems.clear()
+        selectedItems.addAll(prefs[selectedItemsKey] ?: emptySet())
+        collectedItems.clear()
+        collectedItems.addAll(prefs[collectedItemsKey] ?: emptySet())
+        wrongTapsThisRound.value = prefs[wrongTapsKey] ?: 0
+        hideHintNextRound.value = prefs[hideHintKey] ?: false
     }
 
+    /** 상태가 바뀔 때마다 호출 — 다음 실행에서도 이어할 수 있도록 전체를 다시 쓴다. */
     private fun persist() {
         val store = dataStore ?: return
         val onboarded = hasOnboarded.value
         val themeId = currentTheme.value.id
+        val round = roundNumber.value
+        val selected = selectedItems.toSet()
+        val collected = collectedItems.toSet()
+        val wrongTaps = wrongTapsThisRound.value
+        val hideHint = hideHintNextRound.value
         ioScope.launch {
             store.edit { prefs ->
                 prefs[hasOnboardedKey] = onboarded
                 prefs[themeIdKey] = themeId
+                prefs[roundNumberKey] = round
+                prefs[selectedItemsKey] = selected
+                prefs[collectedItemsKey] = collected
+                prefs[wrongTapsKey] = wrongTaps
+                prefs[hideHintKey] = hideHint
             }
         }
     }
@@ -100,14 +129,17 @@ object GameSession {
 
     fun toggleSelected(item: String) {
         if (selectedItems.contains(item)) selectedItems.remove(item) else selectedItems.add(item)
+        persist()
     }
 
     fun toggleCollected(item: String) {
         if (collectedItems.contains(item)) collectedItems.remove(item) else collectedItems.add(item)
+        persist()
     }
 
     fun registerWrongTap() {
         wrongTapsThisRound.value += 1
+        persist()
     }
 
     /**
@@ -123,6 +155,7 @@ object GameSession {
             reactionTimeSeconds = avgReactionTime,
             round = roundNumber.value,
         )
+        persist()
     }
 
     /** 결과 화면 도달 시 호출 — 다음 라운드로 넘어가며 이번 라운드 상태를 비운다. */
@@ -131,6 +164,7 @@ object GameSession {
         selectedItems.clear()
         collectedItems.clear()
         wrongTapsThisRound.value = 0
+        persist()
     }
 
     /** 싱글턴이라 테스트마다 초기 상태로 되돌리기 위한 용도. 앱 코드에서는 쓰지 않는다. */
