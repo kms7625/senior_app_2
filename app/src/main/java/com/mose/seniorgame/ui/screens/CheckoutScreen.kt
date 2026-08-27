@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mose.seniorgame.data.CookingTheme
 import com.mose.seniorgame.state.GameSession
 
 private const val BUDGET = 10_000
@@ -23,7 +22,7 @@ private const val BUDGET = 10_000
  */
 @Composable
 fun CheckoutScreen(onConfirm: () -> Unit, onSkip: () -> Unit) {
-    val total = CookingTheme.totalPrice(GameSession.selectedItems)
+    val total = GameSession.currentTheme.value.totalPrice(GameSession.selectedItems)
     val withinBudget = total <= BUDGET
     val message = if (withinBudget) {
         "합계 ${total}원 · 예산 ${BUDGET}원 안에 잘 맞췄어요"

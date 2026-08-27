@@ -2,6 +2,8 @@ package com.mose.seniorgame.state
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.mose.seniorgame.data.ShoppingTheme
+import com.mose.seniorgame.data.ThemePool
 
 /**
  * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴, 프로세스 종료 대응은
@@ -17,12 +19,22 @@ object GameSession {
     var roundNumber = mutableStateOf(1)
         private set
 
+    /** 온보딩/설정에서 고른 선호 테마. 기본값은 요리 재료(가장 먼저 코드화된 테마). */
+    var currentTheme = mutableStateOf(ThemePool.cooking)
+        private set
+
     val selectedItems = mutableStateListOf<String>()
 
     val collectedItems = mutableStateListOf<String>()
 
     val showListHint: Boolean
         get() = roundNumber.value <= 2
+
+    fun selectTheme(theme: ShoppingTheme) {
+        currentTheme.value = theme
+        selectedItems.clear()
+        collectedItems.clear()
+    }
 
     fun toggleSelected(item: String) {
         if (selectedItems.contains(item)) selectedItems.remove(item) else selectedItems.add(item)
@@ -42,6 +54,7 @@ object GameSession {
     /** 싱글턴이라 테스트마다 초기 상태로 되돌리기 위한 용도. 앱 코드에서는 쓰지 않는다. */
     fun resetForTest() {
         roundNumber.value = 1
+        currentTheme.value = ThemePool.cooking
         selectedItems.clear()
         collectedItems.clear()
     }

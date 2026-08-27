@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mose.seniorgame.data.CookingTheme
 import com.mose.seniorgame.state.GameSession
 
 /**
@@ -28,9 +27,10 @@ import com.mose.seniorgame.state.GameSession
  */
 @Composable
 fun SearchScreen(onDone: () -> Unit) {
+    val theme = GameSession.currentTheme.value
     val targets = GameSession.selectedItems
-    val tiles = remember(targets.toList()) {
-        val decoys = targets.mapNotNull { CookingTheme.decoyOf(it) }
+    val tiles = remember(theme.id, targets.toList()) {
+        val decoys = targets.mapNotNull { theme.decoyOf(it) }
         (targets + decoys).shuffled()
     }
     val showHint = GameSession.showListHint
@@ -43,7 +43,7 @@ fun SearchScreen(onDone: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = if (showHint) "채소 코너 · 목표 품목에는 ✓ 표시가 있어요" else "채소 코너 · 목록을 떠올려서 찾아보세요",
+            text = if (showHint) "${theme.label} 코너 · 목표 품목에는 ✓ 표시가 있어요" else "${theme.label} 코너 · 목록을 떠올려서 찾아보세요",
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(

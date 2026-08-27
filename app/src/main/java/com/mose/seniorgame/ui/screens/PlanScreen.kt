@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mose.seniorgame.data.CookingTheme
 import com.mose.seniorgame.state.GameSession
 
 /**
@@ -23,7 +22,8 @@ import com.mose.seniorgame.state.GameSession
  */
 @Composable
 fun PlanScreen(onConfirm: () -> Unit) {
-    val candidates = CookingTheme.candidates()
+    val theme = GameSession.currentTheme.value
+    val candidates = theme.candidates()
 
     Column(
         modifier = Modifier
@@ -31,7 +31,7 @@ fun PlanScreen(onConfirm: () -> Unit) {
             .padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("냉장고 속 부족한 것을 골라주세요", style = MaterialTheme.typography.titleLarge)
+        Text("${theme.label} · 무엇이 필요한지 골라주세요", style = MaterialTheme.typography.titleLarge)
         candidates.forEach { (target, _) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(

@@ -1,5 +1,6 @@
 package com.mose.seniorgame.state
 
+import com.mose.seniorgame.data.ThemePool
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,5 +45,15 @@ class GameSessionTest {
         assertEquals(2, GameSession.roundNumber.value)
         assertTrue(GameSession.selectedItems.isEmpty())
         assertTrue(GameSession.collectedItems.isEmpty())
+    }
+
+    @Test
+    fun `selectTheme switches the current theme and clears this round's picks`() {
+        GameSession.toggleSelected("두부")
+
+        GameSession.selectTheme(ThemePool.tools)
+
+        assertEquals(ThemePool.tools, GameSession.currentTheme.value)
+        assertTrue(GameSession.selectedItems.isEmpty())
     }
 }
