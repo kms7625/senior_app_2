@@ -2,18 +2,18 @@ package com.mose.seniorgame.state
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.mose.seniorgame.ai.DifficultyModel
 import com.mose.seniorgame.data.ShoppingTheme
 import com.mose.seniorgame.data.ThemePool
 
 /**
  * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴, 프로세스 종료 대응은
- * 아직 없음 — 온디바이스 AI 난이도 조절이 붙기 전 임시 구조).
+ * 아직 없음).
  *
- * [showListHint]는 docs/GDD.md "③ 찾기(간격회상)" 규칙의 자리표시자 구현이다.
- * 실제 온디바이스 AI(TFLite) 난이도 조절이 들어오기 전까지는 라운드 수 기반의 단순
- * 규칙(1~2라운드는 오류배제학습으로 목록을 보여주고, 3라운드부터 회상만으로 진행)으로
- * 대체한다 — 이것 자체를 "온디바이스 AI 적용"이라고 제출 문서에 쓰면 안 된다
- * (senior-game-review 체크리스트: 가점은 실제 모델 추론에만 해당).
+ * [showListHint]는 온디바이스 AI(TFLite, [DifficultyModel])가 직전 라운드 정답률·
+ * 반응시간·라운드 수를 보고 추론한 결과를 따른다(docs/GDD.md "③ 찾기(간격회상)" 참고).
+ * 아직 라운드를 한 번도 마치지 않은 1라운드는 추론할 데이터가 없으므로 기본값(힌트
+ * 노출)으로 시작한다.
  */
 object GameSession {
     var roundNumber = mutableStateOf(1)
@@ -27,8 +27,14 @@ object GameSession {
 
     val collectedItems = mutableStateListOf<String>()
 
+    /** 이번 라운드에 미끼(decoy)를 잘못 골라 탭한 횟수 — 정답률 계산에 쓰인다. */
+    var wrongTapsThisRound = mutableStateOf(0)
+        private set
+
+    private var hideHintNextRound = mutableStateOf(false)
+
     val showListHint: Boolean
-        get() = roundNumber.value <= 2
+        get() = !hideHintNextRound.value
 
     fun selectTheme(theme: ShoppingTheme) {
         currentTheme.value = theme
@@ -44,11 +50,31 @@ object GameSession {
         if (collectedItems.contains(item)) collectedItems.remove(item) else collectedItems.add(item)
     }
 
+    fun registerWrongTap() {
+        wrongTapsThisRound.value += 1
+    }
+
+    /**
+     * 매장 탐색 화면에서 목표 품목을 전부 모았을 때 호출한다. 이번 라운드 정답률과
+     * 품목당 평균 반응시간을 온디바이스 AI에 넘겨 다음 라운드 힌트 노출 여부를 정한다.
+     */
+    fun recordRoundPerformance(targetCount: Int, elapsedSeconds: Float) {
+        if (targetCount <= 0) return
+        val accuracy = targetCount.toFloat() / (targetCount + wrongTapsThisRound.value)
+        val avgReactionTime = elapsedSeconds / targetCount
+        hideHintNextRound.value = DifficultyModel.predictHideHint(
+            accuracy = accuracy,
+            reactionTimeSeconds = avgReactionTime,
+            round = roundNumber.value,
+        )
+    }
+
     /** 결과 화면 도달 시 호출 — 다음 라운드로 넘어가며 이번 라운드 상태를 비운다. */
     fun advanceRound() {
         roundNumber.value += 1
         selectedItems.clear()
         collectedItems.clear()
+        wrongTapsThisRound.value = 0
     }
 
     /** 싱글턴이라 테스트마다 초기 상태로 되돌리기 위한 용도. 앱 코드에서는 쓰지 않는다. */
@@ -57,5 +83,7 @@ object GameSession {
         currentTheme.value = ThemePool.cooking
         selectedItems.clear()
         collectedItems.clear()
+        wrongTapsThisRound.value = 0
+        hideHintNextRound.value = false
     }
 }

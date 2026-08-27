@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,11 +20,13 @@ import com.mose.seniorgame.state.GameSession
 /**
  * 와이어프레임 04: 매장 탐색(찾기).
  * 목표 품목은 PlanScreen에서 고른 [GameSession.selectedItems] 그대로, 각 품목 옆에
- * 미끼(decoy)를 하나씩 섞어 주의력 과제를 구성한다.
+ * 미끼(decoy)를 하나씩 섞어 주의력 과제를 구성한다. 미끼도 탭할 수 있어야 "잘못
+ * 골랐다"를 감지할 수 있으므로 전부 클릭 가능하게 둔다.
  *
- * 간격회상 적용: [GameSession.showListHint]가 true인 1~2라운드는 목표 품목에 정답
- * 표시(✓)를 남겨 오류배제학습으로 진행하고, 3라운드부터는 표시를 지워 회상만으로
- * 찾게 한다(docs/GDD.md "③ 찾기" 참고).
+ * 간격회상 적용: [GameSession.showListHint]는 온디바이스 AI(TFLite)가 직전 라운드
+ * 정답률·반응시간으로 정한 값이다(docs/GDD.md "③ 찾기" 참고). 목표를 전부 모으면
+ * 이번 라운드 정답률·소요시간을 [GameSession.recordRoundPerformance]로 넘겨 다음
+ * 라운드 난이도를 갱신한다.
  */
 @Composable
 fun SearchScreen(onDone: () -> Unit) {
@@ -33,6 +36,9 @@ fun SearchScreen(onDone: () -> Unit) {
         val decoys = targets.mapNotNull { theme.decoyOf(it) }
         (targets + decoys).shuffled()
     }
+    val startTimeMillis = remember(theme.id, targets.toList()) { System.currentTimeMillis() }
+    val warnedDecoys = remember(theme.id, targets.toList()) { mutableStateListOf<String>() }
+
     val showHint = GameSession.showListHint
     val allCollected = targets.isNotEmpty() && targets.all { GameSession.collectedItems.contains(it) }
 
@@ -68,12 +74,27 @@ fun SearchScreen(onDone: () -> Unit) {
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .padding(8.dp)
-                        .clickable(enabled = isTarget) { GameSession.toggleCollected(name) },
+                        .clickable {
+                            if (isTarget) {
+                                GameSession.toggleCollected(name)
+                            } else if (!warnedDecoys.contains(name)) {
+                                // 같은 미끼를 반복 탭해도 한 번만 오답으로 센다.
+                                warnedDecoys.add(name)
+                                GameSession.registerWrongTap()
+                            }
+                        },
                 )
             }
         }
         if (allCollected) {
-            SeniorPrimaryButton(text = "다 담았어요", onClick = onDone)
+            SeniorPrimaryButton(
+                text = "다 담았어요",
+                onClick = {
+                    val elapsedSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000f
+                    GameSession.recordRoundPerformance(targets.size, elapsedSeconds)
+                    onDone()
+                },
+            )
         } else {
             SeniorSecondaryButton(
                 text = "남은 물건 ${targets.size - GameSession.collectedItems.size}개",

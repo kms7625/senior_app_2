@@ -19,6 +19,7 @@ import com.mose.seniorgame.ui.screens.SearchScreen
 import com.mose.seniorgame.ui.screens.SettingsScreen
 import com.mose.seniorgame.ui.theme.SeniorAppTheme
 import com.mose.seniorgame.state.GameSession
+import com.mose.seniorgame.ai.DifficultyModel
 
 // 화면 순서는 docs/GDD.md "사용자 진행 흐름"과 동일:
 // 홈 → 계획 세우기 → 동선 계획 → 매장 탐색 → (선택) 계산대 → 결과 → 홈
@@ -35,6 +36,8 @@ object Routes {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 온디바이스 AI 난이도 모델 초기화 — 완전 오프라인, assets 번들 파일만 읽는다.
+        DifficultyModel.initialize(applicationContext)
         setContent {
             SeniorAppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {

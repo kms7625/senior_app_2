@@ -25,14 +25,32 @@ class GameSessionTest {
     }
 
     @Test
-    fun `showListHint is true for round 1 and 2, false from round 3`() {
-        assertTrue(GameSession.showListHint) // round 1
-
-        GameSession.advanceRound() // round 2
+    fun `showListHint defaults to true before any round performance is recorded`() {
+        // 온디바이스 AI(DifficultyModel)는 실제 기기(Context)가 있어야 초기화되므로
+        // 순수 JVM 단위 테스트 환경에서는 초기화되지 않는다 — 이 경우
+        // DifficultyModel.predictHideHint가 안전한 기본값(false)을 돌려주는지,
+        // 그 결과 GameSession의 기본 동작(힌트 노출 유지)이 안전한지 확인한다.
         assertTrue(GameSession.showListHint)
 
-        GameSession.advanceRound() // round 3
-        assertFalse(GameSession.showListHint)
+        GameSession.recordRoundPerformance(targetCount = 4, elapsedSeconds = 8f)
+
+        assertTrue(GameSession.showListHint) // 모델 미초기화 → hideHint로 안 바뀜
+    }
+
+    @Test
+    fun `registerWrongTap increments the wrong-tap counter and resets on advanceRound`() {
+        GameSession.registerWrongTap()
+        GameSession.registerWrongTap()
+        assertEquals(2, GameSession.wrongTapsThisRound.value)
+
+        GameSession.advanceRound()
+        assertEquals(0, GameSession.wrongTapsThisRound.value)
+    }
+
+    @Test
+    fun `recordRoundPerformance with zero targets does nothing`() {
+        GameSession.recordRoundPerformance(targetCount = 0, elapsedSeconds = 5f)
+        assertTrue(GameSession.showListHint)
     }
 
     @Test

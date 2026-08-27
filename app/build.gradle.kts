@@ -35,6 +35,11 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
+    // .tflite는 압축하지 않아야 mmap으로 바로 읽을 수 있다(DifficultyModel 참고).
+    androidResources {
+        noCompress += "tflite"
+    }
 }
 
 dependencies {
@@ -45,6 +50,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // 온디바이스 AI 난이도 조절(가점 요소, 기획안 12.2). 완전 오프라인 추론이며 모델은
+    // tools/train_difficulty_model.py로 로컬에서 미리 학습·변환해 assets/에 번들한다.
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
     testImplementation("junit:junit:4.13.2")
 }
