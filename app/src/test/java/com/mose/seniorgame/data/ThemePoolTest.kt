@@ -16,6 +16,13 @@ class ThemePoolTest {
     }
 
     @Test
+    fun `every theme has exactly 3 route sections for RouteScreen`() {
+        ThemePool.all.forEach { theme ->
+            assertEquals("${theme.label} 코너 수", 3, theme.sections.size)
+        }
+    }
+
+    @Test
     fun `theme ids are unique`() {
         val ids = ThemePool.all.map { it.id }
         assertEquals(ids.size, ids.toSet().size)

@@ -1,14 +1,29 @@
 package com.mose.seniorgame.state
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.mose.seniorgame.ai.DifficultyModel
 import com.mose.seniorgame.data.ShoppingTheme
 import com.mose.seniorgame.data.ThemePool
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
+private val Context.gameDataStore by preferencesDataStore(name = "game_session")
 
 /**
- * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴, 프로세스 종료 대응은
- * 아직 없음).
+ * 화면 간 공유 게임 상태(MVP: 단일 액티비티 내 인메모리 싱글턴).
+ * 온보딩 여부·선호 테마만 DataStore로 영구 저장하고([initializePersistence]),
+ * 라운드 진행 상태(선택/수집 품목, 라운드 수)는 아직 프로세스 종료 시 사라진다 —
+ * 다음 확장 대상(docs/GDD.md TODO 참고).
  *
  * [showListHint]는 온디바이스 AI(TFLite, [DifficultyModel])가 직전 라운드 정답률·
  * 반응시간·라운드 수를 보고 추론한 결과를 따른다(docs/GDD.md "③ 찾기(간격회상)" 참고).
@@ -16,6 +31,11 @@ import com.mose.seniorgame.data.ThemePool
  * 노출)으로 시작한다.
  */
 object GameSession {
+    private val hasOnboardedKey = booleanPreferencesKey("has_onboarded")
+    private val themeIdKey = stringPreferencesKey("theme_id")
+    private var dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>? = null
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     var roundNumber = mutableStateOf(1)
         private set
 
@@ -23,10 +43,7 @@ object GameSession {
     var currentTheme = mutableStateOf(ThemePool.cooking)
         private set
 
-    /**
-     * 첫 실행 온보딩(테마 선택)을 마쳤는지. 영구 저장소가 아직 없어 앱을 껐다 켜면
-     * 다시 false로 시작한다 — MVP 단계의 알려진 제한사항([OnboardingScreen] 참고).
-     */
+    /** 첫 실행 온보딩(테마 선택)을 마쳤는지. [initializePersistence] 호출 전엔 false. */
     var hasOnboarded = mutableStateOf(false)
         private set
 
@@ -43,14 +60,42 @@ object GameSession {
     val showListHint: Boolean
         get() = !hideHintNextRound.value
 
+    /**
+     * 저장된 온보딩 여부·선호 테마를 동기적으로 읽어온다. MainActivity.onCreate에서
+     * setContent보다 먼저 호출해야 첫 렌더링부터 정확한 시작 화면(홈 vs 온보딩)을
+     * 고를 수 있다. 저장 데이터가 작아(두 값뿐) runBlocking으로도 체감 지연이 거의
+     * 없다고 판단해 별도 스플래시 화면 없이 동기 처리했다 — 항목이 늘어나면 재검토.
+     */
+    fun initializePersistence(context: Context) {
+        val store = context.applicationContext.gameDataStore
+        dataStore = store
+        val prefs = runBlocking { store.data.first() }
+        hasOnboarded.value = prefs[hasOnboardedKey] ?: false
+        prefs[themeIdKey]?.let { currentTheme.value = ThemePool.byId(it) }
+    }
+
+    private fun persist() {
+        val store = dataStore ?: return
+        val onboarded = hasOnboarded.value
+        val themeId = currentTheme.value.id
+        ioScope.launch {
+            store.edit { prefs ->
+                prefs[hasOnboardedKey] = onboarded
+                prefs[themeIdKey] = themeId
+            }
+        }
+    }
+
     fun selectTheme(theme: ShoppingTheme) {
         currentTheme.value = theme
         selectedItems.clear()
         collectedItems.clear()
+        persist()
     }
 
     fun completeOnboarding() {
         hasOnboarded.value = true
+        persist()
     }
 
     fun toggleSelected(item: String) {

@@ -40,6 +40,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // 온디바이스 AI 난이도 모델 초기화 — 완전 오프라인, assets 번들 파일만 읽는다.
         DifficultyModel.initialize(applicationContext)
+        // 온보딩 여부·선호 테마 복원 — setContent보다 먼저 호출해야 시작 화면이 맞다.
+        GameSession.initializePersistence(applicationContext)
         setContent {
             SeniorAppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {

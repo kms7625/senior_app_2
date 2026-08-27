@@ -10,8 +10,17 @@ package com.mose.seniorgame.data
  */
 data class ShoppingItem(val name: String, val decoy: String, val price: Int, val iconSlug: String)
 
-/** docs/theme-item-pool.md의 테마 1개(목표 품목 10개 + 미끼 짝)에 대응. */
-data class ShoppingTheme(val id: String, val label: String, val items: List<ShoppingItem>) {
+/**
+ * docs/theme-item-pool.md의 테마 1개(목표 품목 10개 + 미끼 짝)에 대응.
+ * [sections]는 동선 계획 화면(RouteScreen)에서 보여줄 매장 구역 3곳 — 계산대는
+ * 모든 테마에 공통이라 여기 포함하지 않고 RouteScreen에서 고정으로 덧붙인다.
+ */
+data class ShoppingTheme(
+    val id: String,
+    val label: String,
+    val items: List<ShoppingItem>,
+    val sections: List<String>,
+) {
 
     /** 계획 세우기 화면에 제시할 후보. MVP는 앞쪽 [count]개를 고정으로 쓴다. */
     fun candidates(count: Int = 4): List<Pair<String, String>> =
@@ -46,6 +55,7 @@ object ThemePool {
             ShoppingItem("김", "미역", 3000, "seaweed"),
             ShoppingItem("고추장", "된장", 5000, "gochujang"),
         ),
+        sections = listOf("채소 코너", "정육 코너", "유제품 코너"),
     )
 
     val tools = ShoppingTheme(
@@ -63,6 +73,7 @@ object ThemePool {
             ShoppingItem("우산", "양산", 9000, "umbrella"),
             ShoppingItem("빗자루", "밀대", 7000, "broom"),
         ),
+        sections = listOf("공구 코너", "전기용품 코너", "생활잡화 코너"),
     )
 
     val garden = ShoppingTheme(
@@ -80,6 +91,7 @@ object ThemePool {
             ShoppingItem("지지대", "끈", 2000, "stake"),
             ShoppingItem("화초", "다육이", 8000, "plant"),
         ),
+        sections = listOf("화분 코너", "씨앗·모종 코너", "원예용품 코너"),
     )
 
     val pharmacy = ShoppingTheme(
@@ -97,6 +109,7 @@ object ThemePool {
             ShoppingItem("밴드", "파스", 3000, "band_aid"),
             ShoppingItem("면봉", "솜", 1500, "cotton_swab"),
         ),
+        sections = listOf("위생용품 코너", "세제 코너", "구급용품 코너"),
     )
 
     val stationery = ShoppingTheme(
@@ -114,6 +127,7 @@ object ThemePool {
             ShoppingItem("노끈", "고무줄", 1000, "string"),
             ShoppingItem("메모지", "포스트잇", 1500, "memo_pad"),
         ),
+        sections = listOf("문구 코너", "우편용품 코너", "사무용품 코너"),
     )
 
     val pet = ShoppingTheme(
@@ -131,6 +145,7 @@ object ThemePool {
             ShoppingItem("이동가방", "켄넬", 15000, "carrier"),
             ShoppingItem("물티슈", "휴지", 3000, "wet_wipes"),
         ),
+        sections = listOf("사료 코너", "용품 코너", "미용용품 코너"),
     )
 
     val all: List<ShoppingTheme> = listOf(cooking, tools, garden, pharmacy, stationery, pet)

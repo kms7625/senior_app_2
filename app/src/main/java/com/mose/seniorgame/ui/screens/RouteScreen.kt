@@ -14,18 +14,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.mose.seniorgame.state.GameSession
 
-private val corners = listOf("채소 코너", "정육 코너", "유제품 코너", "계산대")
+private const val CHECKOUT_LABEL = "계산대"
 
 /**
  * 와이어프레임 03: 동선 계획.
  * 드래그 대신 순서 탭 방식 — 정밀 제스처 회피(senior-game-dev 접근성 기준).
  * 코너를 방문하고 싶은 순서대로 탭하면 번호가 붙고, 4곳 모두 정하면 확정 버튼이
- * 활성화된다.
+ * 활성화된다. 코너 3곳은 [GameSession.currentTheme]의 [com.mose.seniorgame.data.ShoppingTheme.sections]를
+ * 따르고, 계산대는 테마 무관 공통이라 항상 마지막에 고정으로 붙는다.
  */
 @Composable
 fun RouteScreen(onConfirm: () -> Unit) {
-    val order = remember { mutableStateListOf<String>() }
+    val theme = GameSession.currentTheme.value
+    val corners = remember(theme.id) { theme.sections + CHECKOUT_LABEL }
+    val order = remember(theme.id) { mutableStateListOf<String>() }
 
     Column(
         modifier = Modifier

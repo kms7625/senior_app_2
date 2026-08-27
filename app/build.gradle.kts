@@ -56,6 +56,9 @@ dependencies {
     // tools/train_difficulty_model.py로 로컬에서 미리 학습·변환해 assets/에 번들한다.
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
+    // 온보딩/선호 테마 영구 저장(GameSession.kt 참고).
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     testImplementation("junit:junit:4.13.2")
 
     // 계측 테스트(에뮬레이터/실기기 필요) — 실제 화면 전환·클릭까지 검증한다.
