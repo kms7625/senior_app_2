@@ -22,7 +22,7 @@ import com.mose.seniorgame.data.ThemePool
  * docs/GDD.md 참고).
  *
  * [GameSession.initializePersistence]가 DataStore로 저장하므로 앱을 껐다 켜도 다시
- * 뜨지 않는다. 설정 화면에서 "선호 테마"를 탭하면 언제든 다시 바꿀 수 있다.
+ * 뜨지 않는다. 설정 화면의 "선호 테마" 목록에서 언제든 다시 바꿀 수 있다.
  */
 @Composable
 fun OnboardingScreen(onThemeChosen: (ShoppingTheme) -> Unit) {

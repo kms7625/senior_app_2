@@ -1,6 +1,8 @@
 package com.mose.seniorgame.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,6 +33,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
@@ -39,25 +46,41 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 /**
- * 선호 테마. 탭할 때마다 [ThemePool.all] 순서대로 다음 테마로 순환한다 — 정식 목록
- * 선택 UI(드롭다운 등)는 이후 디자인 단계에서 다듬고, 지금은 탭 하나로 접근성을
- * 우선한다(복잡한 제스처 지양 원칙).
+ * 선호 테마. 행을 누르면 6개 테마 목록이 그 자리에 펼쳐지고, 하나를 고르면 적용 후
+ * 다시 접힌다. 드롭다운 대신 큰 행 목록 — 작은 메뉴·스크롤 제스처를 피한다
+ * (senior-game-dev 접근성 기준). 현재 테마에는 ✓ 표시.
  */
 @Composable
 private fun ThemeRow() {
     val current = GameSession.currentTheme.value
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                val next = ThemePool.all[(ThemePool.all.indexOf(current) + 1) % ThemePool.all.size]
-                GameSession.selectTheme(next)
-            },
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("선호 테마 (눌러서 변경)", style = MaterialTheme.typography.bodyLarge)
-        Text(current.label, style = MaterialTheme.typography.bodyLarge)
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("선호 테마", style = MaterialTheme.typography.bodyLarge)
+            Text(if (expanded) "${current.label}  ▲" else "${current.label}  ▼", style = MaterialTheme.typography.bodyLarge)
+        }
+        if (expanded) {
+            ThemePool.all.forEach { theme ->
+                Text(
+                    text = if (theme.id == current.id) "✓ ${theme.label}" else theme.label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            if (theme.id != current.id) GameSession.selectTheme(theme)
+                            expanded = false
+                        }
+                        .padding(start = 24.dp, top = 14.dp, bottom = 14.dp),
+                )
+            }
+        }
     }
 }
 

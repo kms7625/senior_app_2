@@ -75,4 +75,20 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("홈으로 돌아가기").performClick()
         composeTestRule.onNodeWithText("2일째 손님맞이").assertExists()
     }
+
+    @Test
+    fun settings_themeRow_opensListAndAppliesChoice() {
+        composeTestRule.onNodeWithText("요리 재료").performClick()
+        composeTestRule.onNodeWithText("설정").performClick()
+
+        // 누르기 전엔 목록이 닫혀 있고, 누르면 6개 테마가 펼쳐진다
+        composeTestRule.onNodeWithText("원예·화초").assertDoesNotExist()
+        composeTestRule.onNodeWithText("요리 재료  ▼").performClick()
+        composeTestRule.onNodeWithText("✓ 요리 재료").assertExists()
+        composeTestRule.onNodeWithText("원예·화초").performClick()
+
+        // 고르면 적용되고 목록이 다시 접힌다
+        composeTestRule.onNodeWithText("원예·화초  ▼").assertExists()
+        composeTestRule.onNodeWithText("✓ 요리 재료").assertDoesNotExist()
+    }
 }
