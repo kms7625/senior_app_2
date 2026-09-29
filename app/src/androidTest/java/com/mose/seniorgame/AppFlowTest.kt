@@ -57,6 +57,8 @@ class AppFlowTest {
         // 매장 탐색 — GameSession.resetForTest() 직후라 showListHint=true(1라운드
         // 기본값)이므로 목표 품목 라벨에는 " ·"가 붙는다. "두부"만으로 substring
         // 매칭하면 미끼 "순두부"도 걸려서 모호해지므로 정확한 라벨로 찾는다.
+        composeTestRule.onNodeWithText("순두부").performClick()
+        composeTestRule.onNodeWithText("순두부는 비슷하지만 목록에 없는 물건이에요").assertExists()
         composeTestRule.onNodeWithText("두부 ·").performClick()
         composeTestRule.onNodeWithText("계란 ·").performClick()
         composeTestRule.onNode(hasText("다 담았어요", substring = true)).performClick()

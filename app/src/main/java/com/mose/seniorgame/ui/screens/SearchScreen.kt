@@ -11,6 +11,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,6 +42,7 @@ fun SearchScreen(onDone: () -> Unit) {
     }
     val startTimeMillis = remember(theme.id, targets.toList()) { System.currentTimeMillis() }
     val warnedDecoys = remember(theme.id, targets.toList()) { mutableStateListOf<String>() }
+    var lastDecoy by remember(theme.id, targets.toList()) { mutableStateOf<String?>(null) }
 
     val showHint = GameSession.showListHint
     val allCollected = targets.isNotEmpty() && targets.all { GameSession.collectedItems.contains(it) }
@@ -57,6 +61,11 @@ fun SearchScreen(onDone: () -> Unit) {
             text = "담은 물건 ${GameSession.collectedItems.size}/${targets.size}",
             style = MaterialTheme.typography.bodyLarge,
         )
+        // 미끼를 골랐을 때 조용히 무시하지 않고 부드럽게 알려준다 — 오답 표시(빨간색·감점)
+        // 대신 무엇이 달랐는지만 말해서 실패 부담을 줄인다.
+        lastDecoy?.let {
+            Text("${withTopicParticle(it)} 비슷하지만 목록에 없는 물건이에요", style = MaterialTheme.typography.bodyLarge)
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
             modifier = Modifier.fillMaxSize().weight(1f, fill = false),
@@ -80,7 +89,11 @@ fun SearchScreen(onDone: () -> Unit) {
                         .clickable {
                             if (isTarget) {
                                 GameSession.toggleCollected(name)
-                            } else if (!warnedDecoys.contains(name)) {
+                                lastDecoy = null
+                            } else {
+                                lastDecoy = name
+                            }
+                            if (!isTarget && !warnedDecoys.contains(name)) {
                                 // 같은 미끼를 반복 탭해도 한 번만 오답으로 센다.
                                 warnedDecoys.add(name)
                                 GameSession.registerWrongTap()
@@ -108,4 +121,11 @@ fun SearchScreen(onDone: () -> Unit) {
             )
         }
     }
+}
+
+/** "순두부" → "순두부는", "쪽파" → "쪽파는", "미역" → "미역은" (받침 유무로 조사 선택). */
+internal fun withTopicParticle(word: String): String {
+    val last = word.lastOrNull() ?: return word
+    val hasFinal = last in '가'..'힣' && (last - '가') % 28 != 0
+    return word + if (hasFinal) "은" else "는"
 }
