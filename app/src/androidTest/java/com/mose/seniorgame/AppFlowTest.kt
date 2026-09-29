@@ -71,6 +71,7 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("확인").performClick()
 
         // 결과 — 홈으로 복귀하면 라운드가 2일째로 늘어야 한다
+        composeTestRule.onNode(hasText("오늘 준비한 것:", substring = true)).assertExists()
         composeTestRule.onNodeWithText("홈으로 돌아가기").performClick()
         composeTestRule.onNodeWithText("2일째 손님맞이").assertExists()
     }

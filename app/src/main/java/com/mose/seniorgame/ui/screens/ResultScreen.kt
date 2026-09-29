@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mose.seniorgame.R
+import com.mose.seniorgame.state.GameSession
 
 /**
  * 와이어프레임 06: 결과 화면.
@@ -36,6 +37,18 @@ fun ResultScreen(onHome: () -> Unit) {
             modifier = Modifier.size(96.dp),
         )
         Text("\"오늘도 손님이 참 좋아했어요\"", style = MaterialTheme.typography.titleLarge)
+        if (GameSession.collectedItems.isNotEmpty()) {
+            Text(
+                "오늘 준비한 것: ${GameSession.collectedItems.joinToString(", ")}",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        // 다음 라운드 방식은 온디바이스 AI(TFLite)가 방금 라운드 성적으로 정한 값이다 —
+        // 난이도 변화를 미리 알려 갑자기 어려워졌다는 느낌을 줄인다.
+        Text(
+            if (GameSession.showListHint) "다음에도 목록을 보면서 찾아볼 거예요" else "다음엔 목록 없이 떠올려서 찾아볼 거예요",
+            style = MaterialTheme.typography.bodyLarge,
+        )
         SeniorPrimaryButton(text = "홈으로 돌아가기", onClick = onHome)
     }
 }
