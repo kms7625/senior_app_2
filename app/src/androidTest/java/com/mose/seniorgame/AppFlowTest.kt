@@ -91,4 +91,22 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("원예·화초  ▼").assertExists()
         composeTestRule.onNodeWithText("✓ 요리 재료").assertDoesNotExist()
     }
+
+    @Test
+    fun exitMidRound_asksFirst_thenReturnsHomeWithoutAdvancingRound() {
+        composeTestRule.onNodeWithText("요리 재료").performClick()
+        composeTestRule.onNodeWithText("오늘의 손님맞이 시작하기").performClick()
+        composeTestRule.onNodeWithText("두부").performClick()
+        composeTestRule.onNode(hasText("목록 확정하기", substring = true)).performClick()
+
+        // 동선 화면에서 나가기 → "계속하기"면 그대로 남는다
+        composeTestRule.onNodeWithText("나가기").performClick()
+        composeTestRule.onNodeWithText("계속하기").performClick()
+        composeTestRule.onNodeWithText("입구에서 출발해요. 들를 순서대로 눌러주세요").assertExists()
+
+        // 다시 나가기 → "처음 화면으로"면 홈, 라운드는 그대로 1일째
+        composeTestRule.onNodeWithText("나가기").performClick()
+        composeTestRule.onNodeWithText("처음 화면으로").performClick()
+        composeTestRule.onNodeWithText("1일째 손님맞이").assertExists()
+    }
 }

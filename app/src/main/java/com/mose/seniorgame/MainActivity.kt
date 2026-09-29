@@ -15,6 +15,7 @@ import com.mose.seniorgame.ui.screens.HomeScreen
 import com.mose.seniorgame.ui.screens.OnboardingScreen
 import com.mose.seniorgame.ui.screens.PlanScreen
 import com.mose.seniorgame.ui.screens.ResultScreen
+import com.mose.seniorgame.ui.screens.RoundFrame
 import com.mose.seniorgame.ui.screens.RouteScreen
 import com.mose.seniorgame.ui.screens.SearchScreen
 import com.mose.seniorgame.ui.screens.SettingsScreen
@@ -56,6 +57,8 @@ class MainActivity : ComponentActivity() {
 private fun AppNavHost() {
     val navController = rememberNavController()
     val startDestination = if (GameSession.hasOnboarded.value) Routes.HOME else Routes.ONBOARDING
+    // 진행 중 "나가기" — 라운드는 넘기지 않고 홈으로만 돌아간다(RoundFrame 참고).
+    val exitToHome: () -> Unit = { navController.popBackStack(Routes.HOME, inclusive = false) }
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
@@ -75,25 +78,29 @@ private fun AppNavHost() {
             )
         }
         composable(Routes.PLAN) {
-            PlanScreen(onConfirm = { navController.navigate(Routes.ROUTE) })
+            RoundFrame(onExit = exitToHome) { PlanScreen(onConfirm = { navController.navigate(Routes.ROUTE) }) }
         }
         composable(Routes.ROUTE) {
-            RouteScreen(onConfirm = { navController.navigate(Routes.SEARCH) })
+            RoundFrame(onExit = exitToHome) { RouteScreen(onConfirm = { navController.navigate(Routes.SEARCH) }) }
         }
         composable(Routes.SEARCH) {
-            SearchScreen(
-                onDone = {
-                    // "이중과제 사용" 토글이 꺼져 있으면 계산대를 건너뛰고 바로 결과로.
-                    val next = if (GameSession.dualTaskEnabled.value) Routes.CHECKOUT else Routes.RESULT
-                    navController.navigate(next)
-                },
-            )
+            RoundFrame(onExit = exitToHome) {
+                SearchScreen(
+                    onDone = {
+                        // "이중과제 사용" 토글이 꺼져 있으면 계산대를 건너뛰고 바로 결과로.
+                        val next = if (GameSession.dualTaskEnabled.value) Routes.CHECKOUT else Routes.RESULT
+                        navController.navigate(next)
+                    },
+                )
+            }
         }
         composable(Routes.CHECKOUT) {
-            CheckoutScreen(
-                onConfirm = { navController.navigate(Routes.RESULT) },
-                onSkip = { navController.navigate(Routes.RESULT) },
-            )
+            RoundFrame(onExit = exitToHome) {
+                CheckoutScreen(
+                    onConfirm = { navController.navigate(Routes.RESULT) },
+                    onSkip = { navController.navigate(Routes.RESULT) },
+                )
+            }
         }
         composable(Routes.RESULT) {
             ResultScreen(
