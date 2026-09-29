@@ -52,6 +52,7 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("정육 코너").performClick()
         composeTestRule.onNodeWithText("유제품 코너").performClick()
         composeTestRule.onNodeWithText("계산대").performClick()
+        composeTestRule.onNodeWithText("가장 덜 걷는 길을 찾으셨어요!").assertExists()
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
 
         // 매장 탐색 — GameSession.resetForTest() 직후라 showListHint=true(1라운드
