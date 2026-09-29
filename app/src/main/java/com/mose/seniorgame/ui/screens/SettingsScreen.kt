@@ -1,14 +1,15 @@
 package com.mose.seniorgame.ui.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -33,7 +34,6 @@ fun SettingsScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
@@ -46,39 +46,43 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 /**
- * 선호 테마. 행을 누르면 6개 테마 목록이 그 자리에 펼쳐지고, 하나를 고르면 적용 후
- * 다시 접힌다. 드롭다운 대신 큰 행 목록 — 작은 메뉴·스크롤 제스처를 피한다
- * (senior-game-dev 접근성 기준). 현재 테마에는 ✓ 표시.
+ * 선호 테마. 현재 테마 이름을 누르면 바로 아래에 작은 드롭다운 목록이 겹쳐 뜬다 —
+ * 아래 설정 행을 밀어내지 않는다. 각 항목은 DropdownMenuItem 기본 높이(48dp)라
+ * 터치 타겟 기준을 지킨다. 현재 테마에는 ✓ 표시.
  */
 @Composable
 private fun ThemeRow() {
     val current = GameSession.currentTheme.value
     var expanded by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("선호 테마", style = MaterialTheme.typography.bodyLarge)
-            Text(if (expanded) "${current.label}  ▲" else "${current.label}  ▼", style = MaterialTheme.typography.bodyLarge)
-        }
-        if (expanded) {
-            ThemePool.all.forEach { theme ->
-                Text(
-                    text = if (theme.id == current.id) "✓ ${theme.label}" else theme.label,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("선호 테마", style = MaterialTheme.typography.bodyLarge)
+        Box {
+            Text(
+                text = "${current.label}  ▼",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .clickable { expanded = true }
+                    .padding(vertical = 12.dp),
+            )
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                ThemePool.all.forEach { theme ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                if (theme.id == current.id) "✓ ${theme.label}" else theme.label,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        },
+                        onClick = {
                             if (theme.id != current.id) GameSession.selectTheme(theme)
                             expanded = false
-                        }
-                        .padding(start = 24.dp, top = 14.dp, bottom = 14.dp),
-                )
+                        },
+                    )
+                }
             }
         }
     }
