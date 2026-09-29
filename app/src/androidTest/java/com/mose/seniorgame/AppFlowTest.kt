@@ -61,8 +61,10 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("계란 ·").performClick()
         composeTestRule.onNode(hasText("다 담았어요", substring = true)).performClick()
 
-        // 계산대 — 실제 합계 계산 문구가 보이는지(두부 1500 + 계란 4000 = 5500)
-        composeTestRule.onNode(hasText("5500원", substring = true)).assertExists()
+        // 계산대 — 보기 3개 중 정답(두부 1500 + 계란 4000 = 5500)을 골라야 확인 버튼이 나온다
+        composeTestRule.onNodeWithText("확인").assertDoesNotExist()
+        composeTestRule.onNodeWithText("5500원").performClick()
+        composeTestRule.onNode(hasText("맞아요, 5500원", substring = true)).assertExists()
         composeTestRule.onNodeWithText("확인").performClick()
 
         // 결과 — 홈으로 복귀하면 라운드가 2일째로 늘어야 한다
