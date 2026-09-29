@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
@@ -61,7 +62,7 @@ fun PlanScreen(onConfirm: () -> Unit) {
                         checked = GameSession.selectedItems.contains(item.name),
                         onCheckedChange = null,
                     )
-                    ItemIcon(iconSlug = item.iconSlug)
+                    ItemIcon(drawableName = "ic_item_${item.iconSlug}", modifier = Modifier.size(56.dp))
                     Text(item.name, style = MaterialTheme.typography.bodyLarge)
                 }
             }

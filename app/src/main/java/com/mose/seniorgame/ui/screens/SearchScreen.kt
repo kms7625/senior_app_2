@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -79,9 +80,10 @@ fun SearchScreen(onDone: () -> Unit) {
                     isCollected -> "$name ✓"
                     else -> name
                 }
-                // 미끼는 아직 전용 ShoppingItem이 없어 iconSlug가 없다 — 자리표시 그림으로
-                // 대체(ItemIcon이 못 찾는 slug는 자동으로 플레이스홀더를 보여준다).
-                val iconSlug = theme.itemOf(name)?.iconSlug ?: "decoy_placeholder"
+                // 목표는 ic_item_*, 미끼는 ic_decoy_* 그림. 둘 다 못 찾으면 ItemIcon이 플레이스홀더로 대체한다.
+                val drawableName = theme.itemOf(name)?.let { "ic_item_${it.iconSlug}" }
+                    ?: theme.decoyIconOf(name)?.let { "ic_decoy_$it" }
+                    ?: "ic_item_placeholder"
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -100,7 +102,7 @@ fun SearchScreen(onDone: () -> Unit) {
                             }
                         },
                 ) {
-                    ItemIcon(iconSlug = iconSlug)
+                    ItemIcon(drawableName = drawableName, modifier = Modifier.size(120.dp))
                     Text(text = label, style = MaterialTheme.typography.bodyLarge)
                 }
             }
