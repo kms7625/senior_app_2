@@ -46,7 +46,7 @@ fun ResultScreen(onHome: () -> Unit) {
         // 다음 라운드 방식은 온디바이스 AI(TFLite)가 방금 라운드 성적으로 정한 값이다 —
         // 난이도 변화를 미리 알려 갑자기 어려워졌다는 느낌을 줄인다.
         Text(
-            if (GameSession.showListHint) "다음에도 목록을 보면서 찾아볼 거예요" else "다음엔 목록 없이 떠올려서 찾아볼 거예요",
+            if (GameSession.nextRoundShowsListHint) "다음에도 목록을 보면서 찾아볼 거예요" else "다음엔 목록 없이 떠올려서 찾아볼 거예요",
             style = MaterialTheme.typography.bodyLarge,
         )
         SeniorPrimaryButton(text = "홈으로 돌아가기", onClick = onHome)

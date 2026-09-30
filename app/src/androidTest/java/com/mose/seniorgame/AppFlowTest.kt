@@ -109,4 +109,28 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("처음 화면으로").performClick()
         composeTestRule.onNodeWithText("1일째 손님맞이").assertExists()
     }
+
+    @Test
+    fun backOneStep_keepsPicksAndHintWithinTheRound() {
+        composeTestRule.onNodeWithText("요리 재료").performClick()
+        composeTestRule.onNodeWithText("오늘의 손님맞이 시작하기").performClick()
+        composeTestRule.onNodeWithText("두부").performClick()
+        composeTestRule.onNode(hasText("목록 확정하기", substring = true)).performClick()
+
+        // 동선 → 이전 단계: 계획 화면으로, 고른 물건 그대로
+        composeTestRule.onNodeWithText("← 이전 단계").performClick()
+        composeTestRule.onNodeWithText("목록 확정하기 (1개 선택)").performClick()
+
+        listOf("채소 코너", "정육 코너", "유제품 코너", "계산대").forEach {
+            composeTestRule.onNodeWithText(it).performClick()
+        }
+        composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
+        composeTestRule.onNodeWithText("두부 ·").performClick()
+        composeTestRule.onNode(hasText("다 담았어요", substring = true)).performClick()
+
+        // 계산대 → 이전 단계: 찾기 화면, 담은 물건과 이번 라운드 힌트(✓ 표시)가 유지된다
+        composeTestRule.onNodeWithText("← 이전 단계").performClick()
+        composeTestRule.onNodeWithText("담은 물건 1/1").assertExists()
+        composeTestRule.onNodeWithText("두부 ✓").assertExists()
+    }
 }

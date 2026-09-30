@@ -70,6 +70,10 @@ object GameSession {
 
     private var hideHintNextRound = mutableStateOf(false)
 
+    /** 이번 라운드를 마치며 AI가 정한 다음 라운드 값. [advanceRound]에서야 적용한다 —
+     * 계산대에서 "이전 단계"로 찾기 화면에 돌아가도 이번 라운드 힌트가 바뀌지 않게. */
+    private var pendingHideHint = mutableStateOf<Boolean?>(null)
+
     /** 설정 화면 토글 — 실제로 게임 동작을 바꾼다(코드 리뷰에서 죽은 UI로 지적된 부분,
      * 2026-08-27 연결). */
     var autoDifficultyEnabled = mutableStateOf(true)
@@ -86,6 +90,11 @@ object GameSession {
      */
     val showListHint: Boolean
         get() = alwaysShowListEnabled.value || !autoDifficultyEnabled.value || !hideHintNextRound.value
+
+    /** 결과 화면 안내용 — 이번 라운드 성적으로 AI가 정한 다음 라운드 힌트 노출 여부. */
+    val nextRoundShowsListHint: Boolean
+        get() = alwaysShowListEnabled.value || !autoDifficultyEnabled.value ||
+            !(pendingHideHint.value ?: hideHintNextRound.value)
 
     /**
      * 저장된 상태를 전부 동기적으로 읽어온다. MainActivity.onCreate에서
@@ -196,7 +205,7 @@ object GameSession {
         }
         val accuracy = targetCount.toFloat() / (targetCount + wrongTapsThisRound.value)
         val avgReactionTime = elapsedSeconds / targetCount
-        hideHintNextRound.value = DifficultyModel.predictHideHint(
+        pendingHideHint.value = DifficultyModel.predictHideHint(
             accuracy = accuracy,
             reactionTimeSeconds = avgReactionTime,
             round = roundNumber.value,
@@ -206,6 +215,8 @@ object GameSession {
 
     /** 결과 화면 도달 시 호출 — 다음 라운드로 넘어가며 이번 라운드 상태를 비운다. */
     fun advanceRound() {
+        pendingHideHint.value?.let { hideHintNextRound.value = it }
+        pendingHideHint.value = null
         roundNumber.value += 1
         selectedItems.clear()
         collectedItems.clear()
@@ -222,6 +233,7 @@ object GameSession {
         collectedItems.clear()
         wrongTapsThisRound.value = 0
         hideHintNextRound.value = false
+        pendingHideHint.value = null
         autoDifficultyEnabled.value = true
         dualTaskEnabled.value = true
         alwaysShowListEnabled.value = false

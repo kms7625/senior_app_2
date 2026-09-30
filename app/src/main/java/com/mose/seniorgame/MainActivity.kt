@@ -59,6 +59,7 @@ private fun AppNavHost() {
     val startDestination = if (GameSession.hasOnboarded.value) Routes.HOME else Routes.ONBOARDING
     // 진행 중 "나가기" — 라운드는 넘기지 않고 홈으로만 돌아간다(RoundFrame 참고).
     val exitToHome: () -> Unit = { navController.popBackStack(Routes.HOME, inclusive = false) }
+    val backOneStep: () -> Unit = { navController.popBackStack() }
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
@@ -81,10 +82,10 @@ private fun AppNavHost() {
             RoundFrame(onExit = exitToHome) { PlanScreen(onConfirm = { navController.navigate(Routes.ROUTE) }) }
         }
         composable(Routes.ROUTE) {
-            RoundFrame(onExit = exitToHome) { RouteScreen(onConfirm = { navController.navigate(Routes.SEARCH) }) }
+            RoundFrame(onExit = exitToHome, onBack = backOneStep) { RouteScreen(onConfirm = { navController.navigate(Routes.SEARCH) }) }
         }
         composable(Routes.SEARCH) {
-            RoundFrame(onExit = exitToHome) {
+            RoundFrame(onExit = exitToHome, onBack = backOneStep) {
                 SearchScreen(
                     onDone = {
                         // "이중과제 사용" 토글이 꺼져 있으면 계산대를 건너뛰고 바로 결과로.
@@ -95,7 +96,7 @@ private fun AppNavHost() {
             }
         }
         composable(Routes.CHECKOUT) {
-            RoundFrame(onExit = exitToHome) {
+            RoundFrame(onExit = exitToHome, onBack = backOneStep) {
                 CheckoutScreen(
                     onConfirm = { navController.navigate(Routes.RESULT) },
                     onSkip = { navController.navigate(Routes.RESULT) },
