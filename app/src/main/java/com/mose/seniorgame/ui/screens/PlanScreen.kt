@@ -1,20 +1,16 @@
 package com.mose.seniorgame.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mose.seniorgame.state.GameSession
@@ -42,28 +38,20 @@ fun PlanScreen(onConfirm: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("${theme.label} · 무엇이 필요한지 골라주세요", style = MaterialTheme.typography.titleLarge)
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        // 품목 10개를 카드 5열 격자로 — 카드 전체가 탭 영역(48dp 이상), 고른 카드는
+        // 초록 테두리·배경 + "✓ 골랐어요" 글자로 함께 표시한다.
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(5),
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            candidates.forEach { item ->
-                // Row 전체를 탭 영역으로 — 체크박스만 노려 눌러야 하는 부담을 줄인다
-                // (48dp 최소 터치 타겟 원칙, senior-game-dev 접근성 기준).
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { GameSession.toggleSelected(item.name) },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Checkbox(
-                        checked = GameSession.selectedItems.contains(item.name),
-                        onCheckedChange = null,
-                    )
-                    ItemIcon(drawableName = "ic_item_${item.iconSlug}", modifier = Modifier.size(56.dp))
+            items(candidates) { item ->
+                val picked = GameSession.selectedItems.contains(item.name)
+                SeniorCard(onClick = { GameSession.toggleSelected(item.name) }, selected = picked) {
+                    ItemIcon(drawableName = "ic_item_${item.iconSlug}", modifier = Modifier.size(96.dp))
                     Text(item.name, style = MaterialTheme.typography.bodyLarge)
+                    Text(if (picked) "✓ 골랐어요" else " ", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }

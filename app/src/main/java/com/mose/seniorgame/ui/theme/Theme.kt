@@ -10,31 +10,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 
-// docs/wireframes.html의 CSS 토큰과 동일한 팔레트.
-private val Paper = Color(0xFFF4F6F3)
-private val Surface = Color(0xFFFFFFFF)
-private val Ink = Color(0xFF223027)
-private val Accent = Color(0xFFB8791B)
+// 품목 그림(생성 이미지)의 아이보리 배경과 초록 소품 톤에 맞춘 팔레트(2026-09-30).
+// 대비: Ink/Paper 약 13:1, 흰 글자/Leaf 버튼 약 6.3:1 — 둘 다 WCAG AA(4.5:1) 이상.
+private val Paper = Color(0xFFFAF4E6)
+private val Card = Color(0xFFFFFCF5)
+private val Ink = Color(0xFF2B2A24)
+private val Leaf = Color(0xFF2F6B4F)
+private val LeafSoft = Color(0xFFDDEBDF)
+private val LeafDeep = Color(0xFF1E4A35)
+private val Line = Color(0xFFCFC3AE)
 
-private val DarkPaper = Color(0xFF171D19)
-private val DarkSurface = Color(0xFF1E2620)
-private val DarkInk = Color(0xFFE7EDE6)
-private val DarkAccent = Color(0xFFE0A94A)
+private val DarkPaper = Color(0xFF1B1F1B)
+private val DarkCard = Color(0xFF242A25)
+private val DarkInk = Color(0xFFEDEAE0)
+private val DarkLeaf = Color(0xFF8CC7A5)
+private val DarkLeafSoft = Color(0xFF2E4A3A)
+private val DarkLine = Color(0xFF4A5249)
 
 private val LightColors = lightColorScheme(
     background = Paper,
-    surface = Surface,
-    primary = Accent,
+    surface = Card,
+    primary = Leaf,
+    onPrimary = Color.White,
+    primaryContainer = LeafSoft,
+    onPrimaryContainer = LeafDeep,
     onBackground = Ink,
     onSurface = Ink,
+    outline = Line,
 )
 
 private val DarkColors = darkColorScheme(
     background = DarkPaper,
-    surface = DarkSurface,
-    primary = DarkAccent,
+    surface = DarkCard,
+    primary = DarkLeaf,
+    onPrimary = Color(0xFF0F2A1D),
+    primaryContainer = DarkLeafSoft,
+    onPrimaryContainer = DarkInk,
     onBackground = DarkInk,
     onSurface = DarkInk,
+    outline = DarkLine,
 )
 
 // 학생안내 "글자 크기 충분히 크게" 원칙 + 웹 리서치 근거(PMC7330495, 22pt에서

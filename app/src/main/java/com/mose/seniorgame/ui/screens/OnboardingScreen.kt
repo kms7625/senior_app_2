@@ -1,12 +1,11 @@
 package com.mose.seniorgame.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,14 +36,15 @@ fun OnboardingScreen(onThemeChosen: (ShoppingTheme) -> Unit) {
             "처음엔 익숙한 주제로 시작해요. 나중에 설정에서 언제든 바꿀 수 있어요.",
             style = MaterialTheme.typography.bodyLarge,
         )
-        ThemePool.all.forEach { theme ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onThemeChosen(theme) }
-                    .padding(vertical = 12.dp),
-            ) {
-                Text(theme.label, style = MaterialTheme.typography.bodyLarge)
+        // 테마 6개를 3개씩 두 줄의 카드로 — 테마 아이콘(ic_theme_<id>)과 이름을 함께 보여준다.
+        ThemePool.all.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                row.forEach { theme ->
+                    SeniorCard(onClick = { onThemeChosen(theme) }, modifier = Modifier.weight(1f)) {
+                        ItemIcon(drawableName = "ic_theme_${theme.id}", modifier = Modifier.size(72.dp))
+                        Text(theme.label, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
             }
         }
     }
