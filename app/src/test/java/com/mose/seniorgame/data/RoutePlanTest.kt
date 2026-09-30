@@ -32,9 +32,22 @@ class RoutePlanTest {
     }
 
     @Test
-    fun `an unneeded corner is pointed out`() {
+    fun `an unneeded corner is pointed out and blocks confirming`() {
         val order = listOf("채소·신선 코너", "가공식품 코너", "양념 코너", checkout)
-        assertEquals("가공식품 코너는 이번엔 안 들러도 되는 코너예요", RoutePlan.feedback(order, sections, itemCorners))
+        assertEquals("가공식품 코너는 이번엔 안 들러도 돼요. 다시 눌러서 빼 주세요", RoutePlan.feedback(order, sections, itemCorners))
+        assertEquals(listOf("가공식품 코너"), RoutePlan.unneeded(order, sections, itemCorners))
+    }
+
+    @Test
+    fun `all unneeded corners are listed, ahead of a missing corner`() {
+        val onlyTofu = mapOf("두부" to "채소·신선 코너")
+        val order = listOf("양념 코너", "가공식품 코너", checkout)
+        assertEquals("가공식품 코너·양념 코너는 이번엔 안 들러도 돼요. 다시 눌러서 빼 주세요", RoutePlan.feedback(order, sections, onlyTofu))
+    }
+
+    @Test
+    fun `needed corners only means nothing is unneeded`() {
+        assertTrue(RoutePlan.unneeded(listOf("채소·신선 코너", "양념 코너", checkout), sections, itemCorners).isEmpty())
     }
 
     @Test

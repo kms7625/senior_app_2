@@ -28,8 +28,8 @@ import com.mose.seniorgame.state.GameSession
  * 드래그 대신 순서 탭 방식 — 정밀 제스처 회피(senior-game-dev 접근성 기준).
  * [RoutePlan]의 2줄 격자 지도(윗줄 코너 3곳, 아랫줄 입구·계산대)에서 방문 순서대로
  * 탭하면 번호가 붙는다. 고른 물건이 있는 코너만 들르면 되고 필요 없는 코너는 건너뛴다.
- * 계산대를 고르면 한 줄 평가(빠진 코너·불필요한 코너·더 짧은 길)가 나오고, 어떤
- * 순서든 확정할 수 있다 — 평가는 알려주기만 하고 막지 않는다.
+ * 계산대를 고르면 한 줄 평가(안 들러도 되는 코너·빠진 코너·더 짧은 길)가 나온다.
+ * 안 들러도 되는 코너가 들어 있으면 확정 버튼이 비활성화되고, 나머지 평가는 알려주기만 한다.
  */
 @Composable
 fun RouteScreen(onConfirm: () -> Unit) {
@@ -58,7 +58,11 @@ fun RouteScreen(onConfirm: () -> Unit) {
         }
         if (RoutePlan.CHECKOUT in order) {
             Text(RoutePlan.feedback(order, sections, itemCorners), style = MaterialTheme.typography.bodyLarge)
-            SeniorPrimaryButton(text = "동선 확정하기", onClick = onConfirm)
+            SeniorPrimaryButton(
+                text = "동선 확정하기",
+                onClick = onConfirm,
+                enabled = RoutePlan.unneeded(order, sections, itemCorners).isEmpty(),
+            )
         } else {
             Text("${order.size}곳 골랐어요 · 마지막에 계산대를 눌러주세요", style = MaterialTheme.typography.bodyLarge)
         }

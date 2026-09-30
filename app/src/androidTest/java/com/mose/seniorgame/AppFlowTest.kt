@@ -1,6 +1,7 @@
 package com.mose.seniorgame
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -52,7 +53,8 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("채소·신선 코너").performClick()
         composeTestRule.onNodeWithText("가공식품 코너").performClick()
         composeTestRule.onNodeWithText("계산대").performClick()
-        composeTestRule.onNodeWithText("가공식품 코너는 이번엔 안 들러도 되는 코너예요").assertExists()
+        composeTestRule.onNodeWithText("가공식품 코너는 이번엔 안 들러도 돼요. 다시 눌러서 빼 주세요").assertExists()
+        composeTestRule.onNode(hasText("동선 확정하기", substring = true)).assertIsNotEnabled()
         composeTestRule.onNodeWithText("2. 가공식품 코너").performClick()
         composeTestRule.onNodeWithText("가장 덜 걷는 길을 찾으셨어요!").assertExists()
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()

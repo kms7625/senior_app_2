@@ -25,9 +25,10 @@ private val MinTouchTarget = 48.dp
 
 /** 주 행동 버튼(Primary CTA). 항상 48dp 이상, 22sp 본문 크기를 따른다. */
 @Composable
-fun SeniorPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SeniorPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.defaultMinSize(minHeight = MinTouchTarget),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
     ) {

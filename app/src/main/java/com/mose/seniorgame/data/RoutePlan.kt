@@ -41,23 +41,26 @@ object RoutePlan {
     fun shortest(stops: List<String>, sections: List<String>): List<String> =
         permutations(stops).map { it + CHECKOUT }.minBy { distance(it, sections) }
 
+    /** 고른 순서 중 이번에 살 물건이 없는 코너(지도 순서). 하나라도 있으면 동선을 확정할 수 없다. */
+    fun unneeded(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): List<String> =
+        sections.filter { it in order && it !in itemCorners.values }
+
     /**
      * 동선 평가 한 줄. [itemCorners]는 고른 물건 → 그 물건이 있는 코너.
-     * 우선순위: 빠진 코너 → 계산대 위치 → 안 들러도 되는 코너 → 거리.
-     * 어떤 경우든 진행은 막지 않고 알려주기만 한다.
+     * 우선순위: 안 들러도 되는 코너(확정 불가) → 빠진 코너 → 계산대 위치 → 거리.
      */
     fun feedback(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): String {
         val needed = sections.filter { it in itemCorners.values }
+        val extra = unneeded(order, sections, itemCorners)
         val missing = itemCorners.entries.firstOrNull { it.value !in order }
-        val extra = order.firstOrNull { it != CHECKOUT && it !in needed }
         val best = shortest(needed, sections)
         return when {
+            extra.isNotEmpty() ->
+                "${withTopicParticle(extra.joinToString("·"))} 이번엔 안 들러도 돼요. 다시 눌러서 빼 주세요"
             missing != null ->
                 "${withTopicParticle(missing.key)} ${missing.value}에 있어요. 그 코너도 들러 주세요"
             order.last() != CHECKOUT ->
                 "계산대는 마지막에 들르면 계산한 뒤 다시 장을 보러 가지 않아도 돼요"
-            extra != null ->
-                "${withTopicParticle(extra)} 이번엔 안 들러도 되는 코너예요"
             distance(order, sections) == distance(best, sections) ->
                 "가장 덜 걷는 길을 찾으셨어요!"
             else ->
