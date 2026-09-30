@@ -45,9 +45,15 @@ object RoutePlan {
     fun unneeded(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): List<String> =
         sections.filter { it in order && it !in itemCorners.values }
 
+    /** 필요한 코너를 전부, 필요 없는 코너는 하나도 없이 고르고 계산대까지 골랐을 때만 확정할 수 있다. */
+    fun canConfirm(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): Boolean =
+        CHECKOUT in order &&
+            unneeded(order, sections, itemCorners).isEmpty() &&
+            itemCorners.values.all { it in order }
+
     /**
      * 동선 평가 한 줄. [itemCorners]는 고른 물건 → 그 물건이 있는 코너.
-     * 우선순위: 안 들러도 되는 코너(확정 불가) → 빠진 코너 → 계산대 위치 → 거리.
+     * 우선순위: 안 들러도 되는 코너 → 빠진 코너(둘 다 확정 불가) → 계산대 위치 → 거리.
      */
     fun feedback(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): String {
         val needed = sections.filter { it in itemCorners.values }

@@ -1,6 +1,7 @@
 package com.mose.seniorgame.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -43,6 +44,14 @@ class RoutePlanTest {
         val onlyTofu = mapOf("두부" to "채소·신선 코너")
         val order = listOf("양념 코너", "가공식품 코너", checkout)
         assertEquals("가공식품 코너·양념 코너는 이번엔 안 들러도 돼요. 다시 눌러서 빼 주세요", RoutePlan.feedback(order, sections, onlyTofu))
+    }
+
+    @Test
+    fun `confirming needs every needed corner, no unneeded one, and the checkout`() {
+        assertTrue(RoutePlan.canConfirm(listOf("채소·신선 코너", "양념 코너", checkout), sections, itemCorners))
+        assertFalse(RoutePlan.canConfirm(listOf("채소·신선 코너", checkout), sections, itemCorners)) // 양념 코너 빠짐
+        assertFalse(RoutePlan.canConfirm(listOf("채소·신선 코너", "가공식품 코너", "양념 코너", checkout), sections, itemCorners))
+        assertFalse(RoutePlan.canConfirm(listOf("채소·신선 코너", "양념 코너"), sections, itemCorners)) // 계산대 없음
     }
 
     @Test

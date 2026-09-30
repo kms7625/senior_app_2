@@ -29,7 +29,8 @@ import com.mose.seniorgame.state.GameSession
  * [RoutePlan]의 2줄 격자 지도(윗줄 코너 3곳, 아랫줄 입구·계산대)에서 방문 순서대로
  * 탭하면 번호가 붙는다. 고른 물건이 있는 코너만 들르면 되고 필요 없는 코너는 건너뛴다.
  * 계산대를 고르면 한 줄 평가(안 들러도 되는 코너·빠진 코너·더 짧은 길)가 나온다.
- * 안 들러도 되는 코너가 들어 있으면 확정 버튼이 비활성화되고, 나머지 평가는 알려주기만 한다.
+ * 필요한 코너를 다 고르고 필요 없는 코너는 빼야 확정 버튼이 활성화된다([RoutePlan.canConfirm]).
+ * 계산대 순서·더 짧은 길 평가는 알려주기만 한다.
  */
 @Composable
 fun RouteScreen(onConfirm: () -> Unit) {
@@ -61,7 +62,7 @@ fun RouteScreen(onConfirm: () -> Unit) {
             SeniorPrimaryButton(
                 text = "동선 확정하기",
                 onClick = onConfirm,
-                enabled = RoutePlan.unneeded(order, sections, itemCorners).isEmpty(),
+                enabled = RoutePlan.canConfirm(order, sections, itemCorners),
             )
         } else {
             Text("${order.size}곳 골랐어요 · 마지막에 계산대를 눌러주세요", style = MaterialTheme.typography.bodyLarge)
