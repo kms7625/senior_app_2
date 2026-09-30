@@ -16,9 +16,26 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // release 서명 정보는 레포 밖 ~/.gradle/gradle.properties에서만 읽는다(비밀번호 커밋 방지).
+    // 값이 없으면 서명 없이 빌드된다(app-release-unsigned.apk).
+    val releaseStoreFile = providers.gradleProperty("SENIOR_RELEASE_STORE_FILE").orNull
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.gradleProperty("SENIOR_RELEASE_STORE_PASSWORD").get()
+                keyAlias = providers.gradleProperty("SENIOR_RELEASE_KEY_ALIAS").get()
+                keyPassword = providers.gradleProperty("SENIOR_RELEASE_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (releaseStoreFile != null) signingConfig = signingConfigs.getByName("release")
         }
     }
 
