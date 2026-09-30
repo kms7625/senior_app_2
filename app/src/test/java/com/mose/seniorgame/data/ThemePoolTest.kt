@@ -16,6 +16,21 @@ class ThemePoolTest {
     }
 
     @Test
+    fun `every item sits in one of its theme's corners and no corner is empty`() {
+        ThemePool.all.forEach { theme ->
+            theme.items.forEach { assertTrue("${theme.label} ${it.name}", it.section in theme.sections.indices) }
+            theme.sections.indices.forEach { i ->
+                assertTrue("${theme.label} ${theme.sections[i]} 비어 있음", theme.items.any { it.section == i })
+            }
+        }
+    }
+
+    @Test
+    fun `neededSections lists only corners of the picked items in map order`() {
+        assertEquals(listOf("채소·신선 코너", "양념 코너"), ThemePool.cooking.neededSections(listOf("고추장", "두부", "우유")))
+    }
+
+    @Test
     fun `every theme has exactly 3 route sections for RouteScreen`() {
         ThemePool.all.forEach { theme ->
             assertEquals("${theme.label} 코너 수", 3, theme.sections.size)

@@ -48,9 +48,9 @@ class AppFlowTest {
         composeTestRule.onNode(hasText("목록 확정하기", substring = true)).performClick()
 
         // 동선 계획 — 4개 코너를 순서대로
-        composeTestRule.onNodeWithText("채소 코너").performClick()
-        composeTestRule.onNodeWithText("정육 코너").performClick()
-        composeTestRule.onNodeWithText("유제품 코너").performClick()
+        composeTestRule.onNodeWithText("채소·신선 코너").performClick()
+        composeTestRule.onNodeWithText("가공식품 코너").performClick()
+        composeTestRule.onNodeWithText("양념 코너").performClick()
         composeTestRule.onNodeWithText("계산대").performClick()
         composeTestRule.onNodeWithText("가장 덜 걷는 길을 찾으셨어요!").assertExists()
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
@@ -121,7 +121,7 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("← 이전 단계").performClick()
         composeTestRule.onNodeWithText("목록 확정하기 (1개 선택)").performClick()
 
-        listOf("채소 코너", "정육 코너", "유제품 코너", "계산대").forEach {
+        listOf("채소·신선 코너", "가공식품 코너", "양념 코너", "계산대").forEach {
             composeTestRule.onNodeWithText(it).performClick()
         }
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
