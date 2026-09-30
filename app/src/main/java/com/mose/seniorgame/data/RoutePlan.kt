@@ -10,8 +10,9 @@ import kotlin.math.abs
  * [코너0] [코너1] [코너2]
  * [입구 ]         [계산대]
  * ```
- * 칸 사이 이동 거리는 가로+세로 칸 수(맨해튼 거리)로 센다. 가장 짧은 동선을
- * 계산해 플레이어가 고른 순서와 비교만 하고, 진행을 막지는 않는다.
+ * 칸 사이 이동 거리는 가로+세로 칸 수(맨해튼 거리)로 센다. 고른 물건이 있는 코너만
+ * 들르면 되고(필요 없는 코너는 건너뜀), 그 코너들의 가장 짧은 동선과 플레이어 순서를
+ * 비교해 알려주기만 한다 — 진행을 막지는 않는다.
  */
 object RoutePlan {
 
@@ -36,17 +37,32 @@ object RoutePlan {
         return total
     }
 
-    /** 계산대를 마지막에 두는 순서 중 이동 거리가 가장 짧은 것. */
-    fun shortest(sections: List<String>): List<String> =
-        permutations(sections).map { it + CHECKOUT }.minBy { distance(it, sections) }
+    /** [stops] 코너들을 모두 들르고 계산대를 마지막에 두는 순서 중 이동 거리가 가장 짧은 것. */
+    fun shortest(stops: List<String>, sections: List<String>): List<String> =
+        permutations(stops).map { it + CHECKOUT }.minBy { distance(it, sections) }
 
-    fun feedback(order: List<String>, sections: List<String>): String = when {
-        order.last() != CHECKOUT ->
-            "계산대는 마지막에 들르면 계산한 뒤 다시 장을 보러 가지 않아도 돼요"
-        distance(order, sections) == distance(shortest(sections), sections) ->
-            "가장 덜 걷는 길을 찾으셨어요!"
-        else ->
-            "좋아요! ${shortest(sections).joinToString(" → ")} 순서로 가면 조금 덜 걸어요"
+    /**
+     * 동선 평가 한 줄. [itemCorners]는 고른 물건 → 그 물건이 있는 코너.
+     * 우선순위: 빠진 코너 → 계산대 위치 → 안 들러도 되는 코너 → 거리.
+     * 어떤 경우든 진행은 막지 않고 알려주기만 한다.
+     */
+    fun feedback(order: List<String>, sections: List<String>, itemCorners: Map<String, String>): String {
+        val needed = sections.filter { it in itemCorners.values }
+        val missing = itemCorners.entries.firstOrNull { it.value !in order }
+        val extra = order.firstOrNull { it != CHECKOUT && it !in needed }
+        val best = shortest(needed, sections)
+        return when {
+            missing != null ->
+                "${withTopicParticle(missing.key)} ${missing.value}에 있어요. 그 코너도 들러 주세요"
+            order.last() != CHECKOUT ->
+                "계산대는 마지막에 들르면 계산한 뒤 다시 장을 보러 가지 않아도 돼요"
+            extra != null ->
+                "${withTopicParticle(extra)} 이번엔 안 들러도 되는 코너예요"
+            distance(order, sections) == distance(best, sections) ->
+                "가장 덜 걷는 길을 찾으셨어요!"
+            else ->
+                "좋아요! ${best.joinToString(" → ")} 순서로 가면 조금 덜 걸어요"
+        }
     }
 
     private fun permutations(items: List<String>): List<List<String>> =

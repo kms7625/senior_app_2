@@ -27,8 +27,9 @@ import com.mose.seniorgame.state.GameSession
  * 와이어프레임 03: 동선 계획.
  * 드래그 대신 순서 탭 방식 — 정밀 제스처 회피(senior-game-dev 접근성 기준).
  * [RoutePlan]의 2줄 격자 지도(윗줄 코너 3곳, 아랫줄 입구·계산대)에서 방문 순서대로
- * 탭하면 번호가 붙고, 4곳을 다 정하면 가장 짧은 동선과 비교한 한 줄 안내가 나온다.
- * 어떤 순서든 확정할 수 있다 — 평가는 알려주기만 하고 막지 않는다.
+ * 탭하면 번호가 붙는다. 고른 물건이 있는 코너만 들르면 되고 필요 없는 코너는 건너뛴다.
+ * 계산대를 고르면 한 줄 평가(빠진 코너·불필요한 코너·더 짧은 길)가 나오고, 어떤
+ * 순서든 확정할 수 있다 — 평가는 알려주기만 하고 막지 않는다.
  */
 @Composable
 fun RouteScreen(onConfirm: () -> Unit) {
@@ -36,6 +37,8 @@ fun RouteScreen(onConfirm: () -> Unit) {
     val sections = theme.sections
     val order = remember(theme.id) { mutableStateListOf<String>() }
     val toggle: (String) -> Unit = { stop -> if (order.contains(stop)) order.remove(stop) else order.add(stop) }
+    val picked = GameSession.selectedItems.toList()
+    val itemCorners = picked.mapNotNull { item -> theme.sectionOf(item)?.let { item to it } }.toMap()
 
     Column(
         modifier = Modifier
@@ -43,7 +46,8 @@ fun RouteScreen(onConfirm: () -> Unit) {
             .padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("입구에서 출발해요. 들를 순서대로 눌러주세요", style = MaterialTheme.typography.titleLarge)
+        Text("입구에서 출발해요. 필요한 코너만 순서대로 눌러주세요", style = MaterialTheme.typography.titleLarge)
+        Text("살 물건: ${picked.joinToString(", ")} · 계산대는 꼭 들러요", style = MaterialTheme.typography.bodyLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             sections.forEach { MapCell(it, order.indexOf(it), onClick = { toggle(it) }) }
         }
@@ -52,11 +56,11 @@ fun RouteScreen(onConfirm: () -> Unit) {
             Box(Modifier.weight(1f))
             MapCell(RoutePlan.CHECKOUT, order.indexOf(RoutePlan.CHECKOUT), onClick = { toggle(RoutePlan.CHECKOUT) })
         }
-        if (order.size == sections.size + 1) {
-            Text(RoutePlan.feedback(order, sections), style = MaterialTheme.typography.bodyLarge)
+        if (RoutePlan.CHECKOUT in order) {
+            Text(RoutePlan.feedback(order, sections, itemCorners), style = MaterialTheme.typography.bodyLarge)
             SeniorPrimaryButton(text = "동선 확정하기", onClick = onConfirm)
         } else {
-            Text("${order.size}/${sections.size + 1}곳 정했어요", style = MaterialTheme.typography.bodyLarge)
+            Text("${order.size}곳 골랐어요 · 마지막에 계산대를 눌러주세요", style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.mose.seniorgame.ui.screens
+package com.mose.seniorgame.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

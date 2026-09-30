@@ -55,9 +55,14 @@ fun PlanScreen(onConfirm: () -> Unit) {
                 }
             }
         }
-        SeniorPrimaryButton(
-            text = "목록 확정하기 (${GameSession.selectedItems.size}개 선택)",
-            onClick = onConfirm,
-        )
+        // 0개로 넘어가면 찾기 화면에서 끝낼 수 없으므로, 1개 이상 골라야 확정 버튼이 나온다.
+        if (GameSession.selectedItems.isEmpty()) {
+            Text("준비할 물건을 1개 이상 골라주세요", style = MaterialTheme.typography.bodyLarge)
+        } else {
+            SeniorPrimaryButton(
+                text = "목록 확정하기 (${GameSession.selectedItems.size}개 선택)",
+                onClick = onConfirm,
+            )
+        }
     }
 }

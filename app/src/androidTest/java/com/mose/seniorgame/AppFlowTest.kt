@@ -47,11 +47,13 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("계란").performClick()
         composeTestRule.onNode(hasText("목록 확정하기", substring = true)).performClick()
 
-        // 동선 계획 — 4개 코너를 순서대로
+        // 동선 계획 — 두부·계란은 둘 다 채소·신선 코너. 필요 없는 코너를 누르면 알려주고,
+        // 빼면 칭찬한다(필요 없는 코너는 건너뛸 수 있음).
         composeTestRule.onNodeWithText("채소·신선 코너").performClick()
         composeTestRule.onNodeWithText("가공식품 코너").performClick()
-        composeTestRule.onNodeWithText("양념 코너").performClick()
         composeTestRule.onNodeWithText("계산대").performClick()
+        composeTestRule.onNodeWithText("가공식품 코너는 이번엔 안 들러도 되는 코너예요").assertExists()
+        composeTestRule.onNodeWithText("2. 가공식품 코너").performClick()
         composeTestRule.onNodeWithText("가장 덜 걷는 길을 찾으셨어요!").assertExists()
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
 
@@ -102,7 +104,7 @@ class AppFlowTest {
         // 동선 화면에서 나가기 → "계속하기"면 그대로 남는다
         composeTestRule.onNodeWithText("나가기").performClick()
         composeTestRule.onNodeWithText("계속하기").performClick()
-        composeTestRule.onNodeWithText("입구에서 출발해요. 들를 순서대로 눌러주세요").assertExists()
+        composeTestRule.onNodeWithText("입구에서 출발해요. 필요한 코너만 순서대로 눌러주세요").assertExists()
 
         // 다시 나가기 → "처음 화면으로"면 홈, 라운드는 그대로 1일째
         composeTestRule.onNodeWithText("나가기").performClick()
@@ -121,7 +123,7 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("← 이전 단계").performClick()
         composeTestRule.onNodeWithText("목록 확정하기 (1개 선택)").performClick()
 
-        listOf("채소·신선 코너", "가공식품 코너", "양념 코너", "계산대").forEach {
+        listOf("채소·신선 코너", "계산대").forEach {
             composeTestRule.onNodeWithText(it).performClick()
         }
         composeTestRule.onNode(hasText("동선 확정하기", substring = true)).performClick()
